@@ -77,7 +77,20 @@ async function database() {
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
-    return json(res, 200, { ok: true, service: "valuation-hallucination-waitlist" });
+    const db = await database();
+    if (!db) {
+      return json(res, 503, {
+        ok: false,
+        service: "valuation-hallucination-waitlist",
+        database: "not-configured"
+      });
+    }
+    await db.query("SELECT 1");
+    return json(res, 200, {
+      ok: true,
+      service: "valuation-hallucination-waitlist",
+      database: "connected"
+    });
   }
   if (req.method !== "POST") {
     res.setHeader("Allow", "GET, POST");
@@ -89,6 +102,7 @@ export default async function handler(req, res) {
 
   const email = normalizeEmail(body.email);
   if (!validEmail(email)) return json(res, 400, { detail: "Enter a valid email address." });
+  const smokeTest = email.endsWith("@example.invalid");
 
   const db = await database();
   if (!db) {
@@ -150,10 +164,13 @@ export default async function handler(req, res) {
        WHERE id <= $1`,
       [row.id]
     );
-    await client.query("COMMIT");
+    // Reserved .invalid addresses exercise the full transaction without
+    // consuming a real waitlist position or leaving test data behind.
+    await client.query(smokeTest ? "ROLLBACK" : "COMMIT");
 
     return json(res, 200, {
       status,
+      smoke_test: smokeTest,
       position: positionResult.rows[0].position,
       referral_code: row.referral_code,
       referral_count: row.referral_count,
