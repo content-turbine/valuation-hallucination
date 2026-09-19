@@ -8,8 +8,10 @@ This is a static launch site with small, isolated Vercel Functions. No build com
 
 ## Experiences
 
-- `/` — coming-soon page with a gamified waitlist, founder archetype, valuation, position, and referral link.
+- `/` — coming-soon page with the Founders’ Round, Founder ID, archetype, valuation, referral milestones, leaderboard rank, community-vote allowance, and Founder Edition eligibility.
 - `/market` — mobile-first live market card with a center-of-table view.
+- `/terms` — Founders’ Round promotional terms.
+- `/privacy` — pre-launch privacy notice.
 - `/api/market` — current public real-world Market Event.
 - `/api/market/generate` — protected manual generation of three candidates.
 - `/api/slack/events` — signed Slack reply handler for `pick 1`, `pick 2`, or `pick 3`.
@@ -22,6 +24,16 @@ Connect a Postgres database to the Vercel project and expose either `DATABASE_UR
 The included `db/001_waitlist.sql` migration documents the table structure. The API also initializes that same schema safely on first use.
 
 Email consent, signup source, referral attribution, and signup time are stored with every record. Emails never appear in the browser response or public assets.
+
+### Founders’ Round milestones
+
+- Join: Founder ID, archetype, starting valuation, and one community-card vote.
+- 1 qualified referral: +$50M virtual valuation and leaderboard movement.
+- 3 qualified referrals: a second community-card vote.
+- 5 qualified referrals: an opt-in invitation for a display name on the digital Founders’ Cap Table.
+- Back during the first 48 hours of the Kickstarter campaign: eligibility for the disclosed Founder Edition bonus, subject to the Founders’ Round Terms and successful pledge collection.
+
+Terms acceptance is versioned as `founders-round-2026-09-19`. The production contact alias referenced by the legal pages is `hello@valuationhallucination.com`; keep that mailbox or alias active before collecting signups under these terms.
 
 ## Live market feature
 

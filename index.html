@@ -35,6 +35,9 @@
     h1 span { display:block; color:var(--acid); text-shadow:5px 5px 0 var(--violet); }
     .lead { margin:0; max-width:620px; color:rgba(255,255,255,.78); font-size:clamp(1.05rem,1.8vw,1.35rem); line-height:1.55; }
     .lead strong { color:white; }
+    .founders-offer { max-width:620px; margin-top:20px; padding:13px 15px; border-left:4px solid var(--acid); background:rgba(217,255,0,.08); }
+    .founders-offer b { display:block; color:var(--acid); font-size:.69rem; }
+    .founders-offer span { display:block; margin-top:6px; color:rgba(255,255,255,.76); font-size:.83rem; line-height:1.45; }
     .waitlist { display:flex; gap:9px; margin-top:28px; max-width:620px; }
     .waitlist input[type="email"] { flex:1; min-width:0; min-height:52px; padding:0 16px; border:1px solid var(--line); border-radius:0; background:rgba(255,255,255,.08); color:white; font:500 1rem "Space Grotesk",sans-serif; outline:none; }
     .waitlist input[type="email"]::placeholder { color:rgba(255,255,255,.48); }
@@ -45,16 +48,24 @@
     .form-status.error { color:#ff7caf; }
     .consent { display:flex; align-items:flex-start; gap:8px; max-width:620px; margin:12px 0 0; color:rgba(255,255,255,.5); font-size:.67rem; line-height:1.45; }
     .consent input { margin-top:2px; accent-color:var(--acid); }
+    .consent a { color:rgba(255,255,255,.78); text-underline-offset:2px; }
+    .consent a:hover,.consent a:focus-visible { color:var(--acid); outline:none; }
     .signup-result { max-width:620px; margin-top:18px; border:1px solid var(--acid); background:rgba(217,255,0,.075); padding:18px; box-shadow:6px 6px 0 rgba(111,48,255,.85); }
     .signup-result[hidden] { display:none; }
     .signup-kicker { margin:0 0 11px; color:var(--acid); font-size:.63rem; }
-    .signup-grid { display:grid; grid-template-columns:1.4fr .7fr .7fr; gap:9px; }
+    .signup-grid { display:grid; grid-template-columns:1.25fr .85fr .75fr .75fr; gap:9px; }
     .signup-stat { padding:11px; border:1px solid var(--line); background:rgba(0,0,0,.34); }
     .signup-stat b { display:block; color:white; font-size:1rem; line-height:1.12; }
     .signup-stat span { display:block; margin-top:6px; color:rgba(255,255,255,.48); font-size:.56rem; }
     .referral { display:flex; gap:8px; margin-top:10px; }
     .referral input { min-width:0; flex:1; padding:0 10px; border:1px solid var(--line); background:rgba(0,0,0,.45); color:rgba(255,255,255,.74); font:.62rem "DM Mono",monospace; }
     .referral button { min-height:40px; border:1px solid var(--acid); background:transparent; color:var(--acid); padding:0 11px; cursor:pointer; font:.6rem "DM Mono",monospace; text-transform:uppercase; }
+    .reward-track { display:grid; grid-template-columns:repeat(5,1fr); gap:7px; margin-top:12px; }
+    .milestone { min-height:76px; padding:9px; border:1px solid var(--line); background:rgba(0,0,0,.32); color:rgba(255,255,255,.4); }
+    .milestone b { display:block; color:inherit; font-size:.63rem; }
+    .milestone span { display:block; margin-top:6px; font-size:.52rem; line-height:1.35; }
+    .milestone.unlocked { color:var(--ink); border-color:var(--acid); background:var(--acid); }
+    .milestone.reserved { color:white; border-color:var(--violet); background:rgba(111,48,255,.34); }
     .honeypot { position:absolute!important; width:1px!important; height:1px!important; overflow:hidden!important; clip:rect(0 0 0 0)!important; white-space:nowrap!important; }
     .signal-link { color:inherit; text-decoration:none; }
     .signal-link .signal { transition:border-color .18s ease,transform .18s ease,background .18s ease; }
@@ -72,6 +83,9 @@
     .ticker-track { display:inline-block; min-width:200%; white-space:nowrap; padding:13px 240px 13px 0; color:var(--acid); font-size:.7rem; animation:ticker 24s linear infinite; }
     @keyframes ticker { to { transform:translateX(-50%); } }
     footer { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:11px 0 13px; color:rgba(255,255,255,.45); font-size:.58rem; }
+    footer a { color:inherit; text-decoration:none; }
+    footer a:hover,footer a:focus-visible { color:var(--acid); outline:none; }
+    .legal-links { display:flex; align-items:center; gap:12px; }
     .made { text-align:right; }
     .made b { color:var(--pink); font-size:.82rem; }
     .socials { position:absolute; z-index:2; right:max(13px,calc((100vw - 1260px)/2)); top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:7px; padding:5px 0 5px 54px; background:linear-gradient(90deg,transparent 0,var(--ink) 32%); }
@@ -87,7 +101,7 @@
     .reveal:nth-child(2) { animation-delay:.12s; } .reveal:nth-child(3) { animation-delay:.22s; } .reveal:nth-child(4) { animation-delay:.32s; }
     @keyframes reveal { to { opacity:1; transform:none; } }
     @media (max-width:900px) { .nav{min-height:68px} main{grid-template-columns:1fr;padding-top:46px;gap:24px} h1{font-size:clamp(3.8rem,15vw,6.7rem)} .lockup{min-height:450px}.lockup::before{width:65%} }
-    @media (max-width:620px) { .page{width:min(100% - 26px,1260px)} .logo{width:250px}.status span{display:none} main{min-height:auto} h1{font-size:clamp(3.4rem,17vw,4.8rem)} .waitlist{display:grid}.waitlist button{width:100%}.signals{grid-template-columns:1fr 1fr}.signal{padding:12px 10px}.signal b{font-size:1.25rem}.signup-grid{grid-template-columns:1fr 1fr}.signup-stat:first-child{grid-column:1/-1}.referral{display:grid}.referral input{min-height:40px}.lockup{min-height:330px;margin-inline:-8px}.classified{right:-1%;bottom:4%}.ticker{min-height:44px}.ticker-track{padding-block:11px}.socials{right:8px;gap:5px;padding-left:42px}.social-link{width:31px;height:31px}footer{gap:10px;padding:9px 0 11px;font-size:.5rem}.made{max-width:48%} }
+    @media (max-width:620px) { .page{width:min(100% - 26px,1260px)} .logo{width:250px}.status span{display:none} main{min-height:auto} h1{font-size:clamp(3.4rem,17vw,4.8rem)} .waitlist{display:grid}.waitlist button{width:100%}.signals{grid-template-columns:1fr 1fr}.signal{padding:12px 10px}.signal b{font-size:1.25rem}.signup-grid{grid-template-columns:1fr 1fr}.reward-track{grid-template-columns:1fr 1fr}.milestone:last-child{grid-column:1/-1}.referral{display:grid}.referral input{min-height:40px}.lockup{min-height:330px;margin-inline:-8px}.classified{right:-1%;bottom:4%}.ticker{min-height:44px}.ticker-track{padding-block:11px}.socials{right:8px;gap:5px;padding-left:42px}.social-link{width:31px;height:31px}footer{gap:10px;padding:9px 0 11px;font-size:.5rem}.legal-links{gap:7px}.made{max-width:48%} }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important} }
   </style>
 </head>
@@ -99,28 +113,38 @@
     </header>
     <main>
       <section aria-labelledby="headline">
-        <div class="eyebrow mono reveal">Market closed // round loading</div>
+        <div class="eyebrow mono reveal">A satirical startup card game // coming soon</div>
         <h1 id="headline" class="reveal">The <span>$1B race</span> starts soon.</h1>
-        <p class="lead reveal">Capital is moving. Dirty tricks are loading. The market is unstable—and <strong>every founder is hiding a side hustle.</strong></p>
+        <p class="lead reveal"><strong>Valuation Hallucination is a fast, satirical card game</strong> where you build an AI startup, hire agents, survive market chaos and race to a $1B valuation—while hiding a side hustle.</p>
+        <div class="founders-offer reveal"><b class="mono">Join the Founders’ Round</b><span>Claim your Founder ID, vote on a real card in the finished game, and reserve the Founder Edition bonus if you back within 48 hours of launch.</span></div>
         <form class="waitlist reveal" id="waitlistForm">
           <label class="honeypot" for="website">Leave this field empty</label>
           <input class="honeypot" id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
           <label class="honeypot" for="email">Email address</label>
           <input id="email" name="email" type="email" required autocomplete="email" placeholder="founder@definitelyreal.ai" />
-          <button type="submit">Join the waitlist ↗</button>
+          <button type="submit">Claim my Founder ID ↗</button>
         </form>
-        <label class="consent reveal"><input id="consent" type="checkbox" required form="waitlistForm" /> <span>I agree to receive Kickstarter launch and game updates. Unsubscribe anytime.</span></label>
-        <p class="form-status" id="formStatus" aria-live="polite">Launch updates only. No pitch spam.</p>
+        <label class="consent reveal"><input id="termsConsent" type="checkbox" required form="waitlistForm" /> <span>I agree to the <a href="/terms" target="_blank">Founders’ Round Terms</a> and confirm I’m 16+ or have permission from a parent or guardian.</span></label>
+        <label class="consent reveal"><input id="marketingConsent" type="checkbox" required form="waitlistForm" /> <span>Send me the community vote, Kickstarter launch and game updates. Unsubscribe anytime. See our <a href="/privacy" target="_blank">Privacy Notice</a>.</span></label>
+        <p class="form-status" id="formStatus" aria-live="polite">One email gets you into the game before the game.</p>
         <section class="signup-result" id="signupResult" aria-live="polite" hidden>
           <p class="signup-kicker mono" id="signupKicker">Shell company incorporated // cap table updated</p>
           <div class="signup-grid">
+            <div class="signup-stat"><b id="founderId">VH-00001</b><span class="mono">Founder ID</span></div>
             <div class="signup-stat"><b id="personaTitle">The Agent Wrangler</b><span class="mono">Founder archetype</span></div>
             <div class="signup-stat"><b id="personaValue">$140M</b><span class="mono">Pre-revenue valuation</span></div>
-            <div class="signup-stat"><b id="waitlistPosition">#001</b><span class="mono">Waitlist position</span></div>
+            <div class="signup-stat"><b id="leaderboardRank">#001</b><span class="mono">Founder leaderboard</span></div>
           </div>
           <div class="referral">
             <input id="referralLink" type="text" readonly aria-label="Your referral link" />
             <button id="copyReferral" type="button">Copy link // +$50M per referral</button>
+          </div>
+          <div class="reward-track" aria-label="Founders’ Round unlocks">
+            <div class="milestone unlocked" id="milestoneJoin"><b class="mono">Joined</b><span>Founder ID + one community vote</span></div>
+            <div class="milestone" id="milestoneOne"><b class="mono">1 referral</b><span>+$50M and leaderboard boost</span></div>
+            <div class="milestone" id="milestoneThree"><b class="mono">3 referrals</b><span>Unlock a second card vote</span></div>
+            <div class="milestone" id="milestoneFive"><b class="mono">5 referrals</b><span>Name on the digital Cap Table</span></div>
+            <div class="milestone reserved" id="milestoneBonus"><b class="mono">48-hour backer</b><span>Founder Edition bonus reserved</span></div>
           </div>
         </section>
         <div class="signals reveal" aria-label="Game teaser">
@@ -147,8 +171,8 @@
     </nav>
   </div>
   <footer class="page mono">
-    <span>© 2026 Valuation Hallucination</span>
-    <span class="made">Made with <b>♥</b>, caffeine &amp; one last commit.</span>
+    <span class="legal-links">© 2026 Valuation Hallucination <a href="/terms">Terms</a> <a href="/privacy">Privacy</a></span>
+    <span class="made">Made by techies, for techies, with <b>♥</b> &amp; caffeine.</span>
   </footer>
   <script>
     const waitlistForm = document.getElementById('waitlistForm');
@@ -166,16 +190,28 @@
         const response = await fetch('/api/waitlist', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.value, website: document.getElementById('website').value, source: 'coming-soon', referred_by: referralCode })
+          body: JSON.stringify({
+            email: email.value,
+            website: document.getElementById('website').value,
+            source: 'coming-soon',
+            referred_by: referralCode,
+            terms_accepted: document.getElementById('termsConsent').checked,
+            age_confirmed: document.getElementById('termsConsent').checked,
+            marketing_consent: document.getElementById('marketingConsent').checked
+          })
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.detail || 'Could not join the waitlist.');
         formStatus.textContent = result.status === 'already_joined' ? "You're already on the cap table. Your valuation is intact." : "You're in. Your suspiciously valuable founder profile is ready.";
         document.getElementById('signupKicker').textContent = result.status === 'already_joined' ? 'Identity recovered // cap table unchanged' : 'Shell company incorporated // cap table updated';
+        document.getElementById('founderId').textContent = result.founder_id;
         document.getElementById('personaTitle').textContent = result.persona.title;
         document.getElementById('personaValue').textContent = `$${result.persona.valuation_millions}M`;
-        document.getElementById('waitlistPosition').textContent = `#${String(result.position).padStart(3,'0')}`;
+        document.getElementById('leaderboardRank').textContent = `#${String(result.leaderboard_rank).padStart(3,'0')}`;
         document.getElementById('referralLink').value = `${window.location.origin}/?ref=${result.referral_code}`;
+        document.getElementById('milestoneOne').classList.toggle('unlocked', result.referral_count >= 1);
+        document.getElementById('milestoneThree').classList.toggle('unlocked', result.referral_count >= 3);
+        document.getElementById('milestoneFive').classList.toggle('unlocked', result.referral_count >= 5);
         signupResult.hidden = false;
         email.value = '';
       } catch (error) {
@@ -183,7 +219,7 @@
         formStatus.textContent = error.message || 'Could not join right now. Please try again.';
       } finally {
         button.disabled = false;
-        button.textContent = 'Join the waitlist ↗';
+        button.textContent = 'Claim my Founder ID ↗';
       }
     });
     document.getElementById('copyReferral').addEventListener('click', async (event) => {
