@@ -65,27 +65,26 @@
     .product { position:relative; z-index:2; width:min(720px,100%); height:auto; transform:rotate(-1deg); filter:contrast(1.08) saturate(1.06) drop-shadow(0 28px 55px rgba(0,0,0,.68)); -webkit-mask-image:radial-gradient(ellipse 92% 90% at 50% 50%,#000 72%,transparent 100%); mask-image:radial-gradient(ellipse 92% 90% at 50% 50%,#000 72%,transparent 100%); }
     .classified { position:absolute; z-index:3; right:1%; bottom:8%; background:var(--pink); color:white; border:2px solid white; padding:10px 14px; transform:rotate(4deg); font-size:.7rem; box-shadow:6px 6px 0 var(--violet); }
     .tape { position:absolute; z-index:4; top:8%; left:6%; padding:9px 13px; background:var(--paper); color:var(--ink); border:2px solid var(--ink); transform:rotate(-4deg); font-size:.66rem; }
-    .ticker { border-block:1px solid var(--line); overflow:hidden; background:rgba(0,0,0,.4); }
-    .ticker-track { display:inline-block; min-width:200%; white-space:nowrap; padding:14px 0; color:var(--acid); font-size:.7rem; animation:ticker 24s linear infinite; }
+    .ticker { position:relative; min-height:48px; display:flex; align-items:center; border-block:1px solid var(--line); overflow:hidden; background:rgba(0,0,0,.52); }
+    .ticker-track { display:inline-block; min-width:200%; white-space:nowrap; padding:13px 240px 13px 0; color:var(--acid); font-size:.7rem; animation:ticker 24s linear infinite; }
     @keyframes ticker { to { transform:translateX(-50%); } }
-    footer { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:24px 0 34px; color:rgba(255,255,255,.48); font-size:.67rem; }
-    footer a { color:inherit; text-underline-offset:4px; }
-    .socials { display:flex; align-items:center; gap:9px; }
-    .social-link { position:relative; width:42px; height:42px; display:grid; place-items:center; border:1px solid var(--line); color:white; background:rgba(255,255,255,.045); text-decoration:none; transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease; }
+    footer { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:11px 0 13px; color:rgba(255,255,255,.45); font-size:.58rem; }
+    .made { text-align:right; }
+    .made b { color:var(--pink); font-size:.82rem; }
+    .socials { position:absolute; z-index:2; right:max(13px,calc((100vw - 1260px)/2)); top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:7px; padding:5px 0 5px 54px; background:linear-gradient(90deg,transparent 0,var(--ink) 32%); }
+    .social-link { position:relative; width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--line); color:white; background:var(--ink); text-decoration:none; transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease; }
     .social-link:hover,.social-link:focus-visible { background:var(--acid); color:var(--ink); border-color:var(--acid); transform:translateY(-2px); outline:none; }
-    .social-glyph { display:block; font:700 1.15rem/1 "Space Grotesk",sans-serif; }
-    .social-glyph.instagram { width:18px; height:18px; border:2px solid currentColor; border-radius:5px; position:relative; }
+    .social-glyph { display:block; font:700 1rem/1 "Space Grotesk",sans-serif; }
+    .social-glyph.instagram { width:16px; height:16px; border:2px solid currentColor; border-radius:5px; position:relative; }
     .social-glyph.instagram::before { content:""; position:absolute; width:5px; height:5px; border:2px solid currentColor; border-radius:50%; inset:50% auto auto 50%; transform:translate(-50%,-50%); }
     .social-glyph.instagram::after { content:""; position:absolute; width:3px; height:3px; border-radius:50%; background:currentColor; top:2px; right:2px; }
-    .brand-logo { width:19px; height:19px; display:block; transition:filter .2s ease; }
+    .brand-logo { width:17px; height:17px; display:block; transition:filter .2s ease; }
     .social-link:hover .brand-logo,.social-link:focus-visible .brand-logo { filter:brightness(0); }
-    .social-tooltip { position:absolute; right:0; bottom:calc(100% + 8px); width:max-content; max-width:180px; padding:6px 8px; background:var(--paper); color:var(--ink); font:.62rem "DM Mono",monospace; text-transform:uppercase; letter-spacing:.04em; opacity:0; pointer-events:none; transform:translateY(4px); transition:.18s ease; }
-    .social-link:hover .social-tooltip,.social-link:focus-visible .social-tooltip { opacity:1; transform:none; }
     .reveal { opacity:0; transform:translateY(16px); animation:reveal .8s ease forwards; }
     .reveal:nth-child(2) { animation-delay:.12s; } .reveal:nth-child(3) { animation-delay:.22s; } .reveal:nth-child(4) { animation-delay:.32s; }
     @keyframes reveal { to { opacity:1; transform:none; } }
     @media (max-width:900px) { .nav{min-height:68px} main{grid-template-columns:1fr;padding-top:46px;gap:24px} h1{font-size:clamp(3.8rem,15vw,6.7rem)} .lockup{min-height:450px}.lockup::before{width:65%} }
-    @media (max-width:620px) { .page{width:min(100% - 26px,1260px)} .logo{width:250px}.status span{display:none} main{min-height:auto} h1{font-size:clamp(3.4rem,17vw,4.8rem)} .waitlist{display:grid}.waitlist button{width:100%}.signals{grid-template-columns:1fr 1fr}.signal{padding:12px 10px}.signal b{font-size:1.25rem}.signup-grid{grid-template-columns:1fr 1fr}.signup-stat:first-child{grid-column:1/-1}.referral{display:grid}.referral input{min-height:40px}.lockup{min-height:330px;margin-inline:-8px}.classified{right:-1%;bottom:4%} footer{align-items:flex-start;flex-direction:column}.social-tooltip{left:0;right:auto} }
+    @media (max-width:620px) { .page{width:min(100% - 26px,1260px)} .logo{width:250px}.status span{display:none} main{min-height:auto} h1{font-size:clamp(3.4rem,17vw,4.8rem)} .waitlist{display:grid}.waitlist button{width:100%}.signals{grid-template-columns:1fr 1fr}.signal{padding:12px 10px}.signal b{font-size:1.25rem}.signup-grid{grid-template-columns:1fr 1fr}.signup-stat:first-child{grid-column:1/-1}.referral{display:grid}.referral input{min-height:40px}.lockup{min-height:330px;margin-inline:-8px}.classified{right:-1%;bottom:4%}.ticker{min-height:44px}.ticker-track{padding-block:11px}.socials{right:8px;gap:5px;padding-left:42px}.social-link{width:31px;height:31px}footer{gap:10px;padding:9px 0 11px;font-size:.5rem}.made{max-width:48%} }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important} }
   </style>
 </head>
@@ -134,15 +133,18 @@
       </section>
     </main>
   </div>
-  <div class="ticker" aria-hidden="true"><div class="ticker-track mono">CAPITAL IN MOTION ✦ MARKET EVENT PENDING ✦ HUSTLE UNDISCLOSED ✦ DUE DILIGENCE DELAYED ✦ DIRTY TRICKS LOADING ✦ CAPITAL IN MOTION ✦ MARKET EVENT PENDING ✦ HUSTLE UNDISCLOSED ✦ DUE DILIGENCE DELAYED ✦ DIRTY TRICKS LOADING ✦ </div></div>
+  <div class="ticker">
+    <div class="ticker-track mono" aria-hidden="true">CAPITAL IN MOTION ✦ MARKET EVENT PENDING ✦ HUSTLE UNDISCLOSED ✦ DUE DILIGENCE DELAYED ✦ DIRTY TRICKS LOADING ✦ CAPITAL IN MOTION ✦ MARKET EVENT PENDING ✦ HUSTLE UNDISCLOSED ✦ DUE DILIGENCE DELAYED ✦ DIRTY TRICKS LOADING ✦ </div>
+    <nav class="socials" aria-label="Follow Valuation Hallucination">
+      <a class="social-link" href="https://www.instagram.com/valuationhallucination" target="_blank" rel="noopener" aria-label="Instagram"><i class="social-glyph instagram" aria-hidden="true"></i></a>
+      <a class="social-link" href="https://www.tiktok.com/@valuationhallucination" target="_blank" rel="noopener" aria-label="TikTok"><img class="brand-logo" src="/assets/tiktok.svg" width="17" height="17" alt="" aria-hidden="true" /></a>
+      <a class="social-link" href="https://x.com/valuationhallucination" target="_blank" rel="noopener" aria-label="X"><span class="social-glyph" aria-hidden="true">𝕏</span></a>
+      <a class="social-link" href="https://www.facebook.com/valuationhallucination" target="_blank" rel="noopener" aria-label="Facebook"><img class="brand-logo" src="/assets/facebook.svg" width="17" height="17" alt="" aria-hidden="true" /></a>
+    </nav>
+  </div>
   <footer class="page mono">
     <span>© 2026 Valuation Hallucination</span>
-    <nav class="socials" aria-label="Follow Valuation Hallucination">
-      <a class="social-link" href="https://www.instagram.com/valuationhallucination" target="_blank" rel="noopener" aria-label="Instagram"><i class="social-glyph instagram" aria-hidden="true"></i><span class="social-tooltip">Instagram</span></a>
-      <a class="social-link" href="https://www.tiktok.com/@valuationhallucination" target="_blank" rel="noopener" aria-label="TikTok"><img class="brand-logo" src="/assets/tiktok.svg" width="19" height="19" alt="" aria-hidden="true" /><span class="social-tooltip">TikTok</span></a>
-      <a class="social-link" href="https://x.com/valuationhallucination" target="_blank" rel="noopener" aria-label="X"><span class="social-glyph" aria-hidden="true">𝕏</span><span class="social-tooltip">X</span></a>
-      <a class="social-link" href="https://www.facebook.com/valuationhallucination" target="_blank" rel="noopener" aria-label="Facebook"><img class="brand-logo" src="/assets/facebook.svg" width="19" height="19" alt="" aria-hidden="true" /><span class="social-tooltip">Facebook</span></a>
-    </nav>
+    <span class="made">Made with <b>♥</b>, caffeine &amp; one last commit.</span>
   </footer>
   <script>
     const waitlistForm = document.getElementById('waitlistForm');
