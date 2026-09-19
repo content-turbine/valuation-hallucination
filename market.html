@@ -87,6 +87,7 @@
     const drawButton = document.getElementById('drawButton');
     const fullscreenButton = document.getElementById('fullscreenButton');
     const fields = ['signal','title','description','effect','target'];
+    let renderedCardKey = null;
 
     function render(data, payload) {
       card.className = `card ${data.polarity}`;
@@ -101,28 +102,38 @@
       source.hidden = !data.source_url;
     }
 
-    async function draw({ animate = true } = {}) {
-      if (animate) card.classList.add('loading');
+    async function transitionTo(data, payload, animate) {
+      if (!animate) {
+        render(data, payload);
+        return;
+      }
+      card.classList.add('loading');
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      render(data, payload);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      card.classList.remove('loading');
+    }
+
+    async function draw({ forceAnimation = false } = {}) {
       deck.setAttribute('aria-busy','true');
       drawButton.disabled = true;
       try {
         const response = await fetch('/api/market', { cache:'no-store' });
         if (!response.ok) throw new Error('Market feed unavailable');
         const result = await response.json();
-        if (animate) setTimeout(() => render(result.card, result), 150);
-        else render(result.card, result);
+        const nextCardKey = `${result.card.id || result.card.effect_code}:${result.generated_at || 'fallback'}:${result.selected_index}`;
+        await transitionTo(result.card, result, forceAnimation || nextCardKey !== renderedCardKey);
+        renderedCardKey = nextCardKey;
       } catch (error) {
         document.getElementById('description').textContent = 'The market feed glitched. Try drawing again.';
       } finally {
-        setTimeout(() => {
-          if (animate) card.classList.remove('loading');
-          deck.setAttribute('aria-busy','false');
-          drawButton.disabled = false;
-        }, animate ? 250 : 0);
+        card.classList.remove('loading');
+        deck.setAttribute('aria-busy','false');
+        drawButton.disabled = false;
       }
     }
 
-    drawButton.addEventListener('click', () => draw({ animate:true }));
+    drawButton.addEventListener('click', () => draw({ forceAnimation:true }));
     if (!document.fullscreenEnabled) fullscreenButton.hidden = true;
     fullscreenButton.addEventListener('click', async () => {
       try {
@@ -136,8 +147,8 @@
       fullscreenButton.title = active ? 'Exit fullscreen' : 'Enter fullscreen';
       fullscreenButton.textContent = active ? '×' : '⛶';
     });
-    draw({ animate:false });
-    window.setInterval(() => draw({ animate:false }), 60_000);
+    draw();
+    window.setInterval(draw, 60_000);
   </script>
 </body>
 </html>
