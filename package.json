@@ -7,6 +7,7 @@
     "check": "node --check api/waitlist.js && node --check api/market.js && node --check api/market/generate.js && node --check api/slack/events.js && node --check lib/market-events.js && node --check lib/slack.js"
   },
   "dependencies": {
+    "@vercel/functions": "^3.9.8",
     "pg": "^8.13.1"
   }
 }
