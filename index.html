@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Valuation Hallucination — Coming Soon</title>
+  <meta name="description" content="A satirical card game about AI startups, hidden side hustles, dirty tricks, market chaos, and the race to a $1 billion valuation." />
+  <meta name="theme-color" content="#07090b" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="/assets/core-icon.png" />
+  <style>
+    :root { --ink:#07090b; --paper:#f8f5ee; --acid:#d9ff00; --pink:#ff1493; --violet:#6f30ff; --line:rgba(255,255,255,.24); }
+    * { box-sizing:border-box; }
+    html { color-scheme:dark; }
+    body {
+      margin:0; min-height:100vh; color:white;
+      background:radial-gradient(circle at 78% 56%,rgba(217,255,0,.13),transparent 29rem),radial-gradient(circle at 22% 18%,rgba(111,48,255,.17),transparent 26rem),var(--ink);
+      font-family:"Space Grotesk",system-ui,sans-serif; overflow-x:hidden;
+    }
+    body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.18; background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px); background-size:34px 34px; mask-image:linear-gradient(to bottom,black,transparent 90%); }
+    img { max-width:100%; display:block; }
+    .mono { font-family:"DM Mono",monospace; text-transform:uppercase; letter-spacing:.09em; }
+    .page { width:min(1260px,calc(100% - 40px)); margin:0 auto; position:relative; }
+    .nav { min-height:74px; display:flex; align-items:center; justify-content:space-between; gap:24px; border-bottom:1px solid var(--line); }
+    .logo { width:min(430px,54vw); height:auto; filter:drop-shadow(0 0 24px rgba(111,48,255,.22)); }
+    .status { display:inline-flex; align-items:center; gap:10px; font-size:.72rem; color:var(--acid); white-space:nowrap; }
+    .status::before { content:""; width:9px; height:9px; background:var(--acid); box-shadow:0 0 15px var(--acid); animation:pulse 1.8s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity:.35; } }
+    main { min-height:calc(100vh - 74px); display:grid; grid-template-columns:.95fr 1.05fr; align-items:center; gap:46px; padding:48px 0 44px; }
+    .eyebrow { display:flex; align-items:center; gap:12px; color:var(--acid); font-size:.75rem; }
+    .eyebrow::before { content:""; width:42px; height:9px; background:var(--pink); }
+    h1 { margin:22px 0; max-width:700px; font-size:clamp(4rem,7.2vw,7.4rem); line-height:.82; letter-spacing:-.085em; text-transform:uppercase; }
+    h1 span { display:block; color:var(--acid); text-shadow:5px 5px 0 var(--violet); }
+    .lead { margin:0; max-width:620px; color:rgba(255,255,255,.78); font-size:clamp(1.05rem,1.8vw,1.35rem); line-height:1.55; }
+    .lead strong { color:white; }
+    .waitlist { display:flex; gap:9px; margin-top:28px; max-width:620px; }
+    .waitlist input[type="email"] { flex:1; min-width:0; min-height:52px; padding:0 16px; border:1px solid var(--line); border-radius:0; background:rgba(255,255,255,.08); color:white; font:500 1rem "Space Grotesk",sans-serif; outline:none; }
+    .waitlist input[type="email"]::placeholder { color:rgba(255,255,255,.48); }
+    .waitlist input[type="email"]:focus { border-color:var(--acid); box-shadow:0 0 0 3px rgba(217,255,0,.15); }
+    .waitlist button { min-height:52px; padding:0 20px; border:2px solid var(--ink); background:var(--acid); color:var(--ink); box-shadow:5px 5px 0 var(--violet); cursor:pointer; font:500 .74rem "DM Mono",monospace; text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+    .waitlist button:disabled { cursor:wait; opacity:.65; }
+    .form-status { min-height:22px; margin:12px 0 0; color:var(--acid); font:.72rem "DM Mono",monospace; text-transform:uppercase; letter-spacing:.04em; }
+    .form-status.error { color:#ff7caf; }
+    .honeypot { position:absolute!important; width:1px!important; height:1px!important; overflow:hidden!important; clip:rect(0 0 0 0)!important; white-space:nowrap!important; }
+    .signals { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:26px; max-width:760px; }
+    .signal { border:1px solid var(--line); background:rgba(255,255,255,.045); padding:16px; min-height:104px; }
+    .signal b { display:block; margin-bottom:8px; color:var(--acid); font-size:1.55rem; line-height:1; }
+    .signal span { color:rgba(255,255,255,.62); font-size:.68rem; line-height:1.45; }
+    .lockup { position:relative; min-height:610px; display:grid; place-items:center; }
+    .lockup::before { content:""; position:absolute; width:68%; aspect-ratio:1; border-radius:50%; background:var(--acid); box-shadow:0 0 120px rgba(217,255,0,.42); filter:blur(3px); }
+    .product { position:relative; z-index:2; width:min(720px,100%); height:auto; transform:rotate(-1deg); filter:contrast(1.08) saturate(1.06) drop-shadow(0 28px 55px rgba(0,0,0,.68)); -webkit-mask-image:radial-gradient(ellipse 92% 90% at 50% 50%,#000 72%,transparent 100%); mask-image:radial-gradient(ellipse 92% 90% at 50% 50%,#000 72%,transparent 100%); }
+    .classified { position:absolute; z-index:3; right:1%; bottom:8%; background:var(--pink); color:white; border:2px solid white; padding:10px 14px; transform:rotate(4deg); font-size:.7rem; box-shadow:6px 6px 0 var(--violet); }
+    .tape { position:absolute; z-index:4; top:8%; left:6%; padding:9px 13px; background:var(--paper); color:var(--ink); border:2px solid var(--ink); transform:rotate(-4deg); font-size:.66rem; }
+    .ticker { border-block:1px solid var(--line); overflow:hidden; background:rgba(0,0,0,.4); }
+    .ticker-track { display:inline-block; min-width:200%; white-space:nowrap; padding:14px 0; color:var(--acid); font-size:.7rem; animation:ticker 24s linear infinite; }
+    @keyframes ticker { to { transform:translateX(-50%); } }
+    footer { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:24px 0 34px; color:rgba(255,255,255,.48); font-size:.67rem; }
+    footer a { color:inherit; text-underline-offset:4px; }
+    .socials { display:flex; align-items:center; gap:9px; }
+    .social-link { position:relative; width:42px; height:42px; display:grid; place-items:center; border:1px solid var(--line); color:white; background:rgba(255,255,255,.045); text-decoration:none; transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease; }
+    .social-link:hover,.social-link:focus-visible { background:var(--acid); color:var(--ink); border-color:var(--acid); transform:translateY(-2px); outline:none; }
+    .social-glyph { display:block; font:700 1.15rem/1 "Space Grotesk",sans-serif; }
+    .social-glyph.instagram { width:18px; height:18px; border:2px solid currentColor; border-radius:5px; position:relative; }
+    .social-glyph.instagram::before { content:""; position:absolute; width:5px; height:5px; border:2px solid currentColor; border-radius:50%; inset:50% auto auto 50%; transform:translate(-50%,-50%); }
+    .social-glyph.instagram::after { content:""; position:absolute; width:3px; height:3px; border-radius:50%; background:currentColor; top:2px; right:2px; }
+    .brand-logo { width:19px; height:19px; display:block; transition:filter .2s ease; }
+    .social-link:hover .brand-logo,.social-link:focus-visible .brand-logo { filter:brightness(0); }
+    .social-tooltip { position:absolute; right:0; bottom:calc(100% + 8px); width:max-content; max-width:180px; padding:6px 8px; background:var(--paper); color:var(--ink); font:.62rem "DM Mono",monospace; text-transform:uppercase; letter-spacing:.04em; opacity:0; pointer-events:none; transform:translateY(4px); transition:.18s ease; }
+    .social-link:hover .social-tooltip,.social-link:focus-visible .social-tooltip { opacity:1; transform:none; }
+    .reveal { opacity:0; transform:translateY(16px); animation:reveal .8s ease forwards; }
+    .reveal:nth-child(2) { animation-delay:.12s; } .reveal:nth-child(3) { animation-delay:.22s; } .reveal:nth-child(4) { animation-delay:.32s; }
+    @keyframes reveal { to { opacity:1; transform:none; } }
+    @media (max-width:900px) { .nav{min-height:68px} main{grid-template-columns:1fr;padding-top:46px;gap:24px} h1{font-size:clamp(3.8rem,15vw,6.7rem)} .lockup{min-height:450px}.lockup::before{width:65%} }
+    @media (max-width:620px) { .page{width:min(100% - 26px,1260px)} .logo{width:250px}.status span{display:none} main{min-height:auto} h1{font-size:clamp(3.4rem,17vw,4.8rem)} .waitlist{display:grid}.waitlist button{width:100%}.signals{grid-template-columns:1fr 1fr}.signal{padding:12px 10px}.signal b{font-size:1.25rem}.lockup{min-height:330px;margin-inline:-8px}.classified{right:-1%;bottom:4%} footer{align-items:flex-start;flex-direction:column}.social-tooltip{left:0;right:auto} }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important} }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="nav">
+      <img class="logo" src="/assets/logo-light.webp" width="520" height="201" decoding="async" alt="Valuation Hallucination" />
+      <div class="status mono"><span>Pre-launch signal detected</span></div>
+    </header>
+    <main>
+      <section aria-labelledby="headline">
+        <div class="eyebrow mono reveal">Market closed // round loading</div>
+        <h1 id="headline" class="reveal">The <span>$1B race</span> starts soon.</h1>
+        <p class="lead reveal">Capital is moving. Dirty tricks are loading. The market is unstable—and <strong>every founder is hiding a side hustle.</strong></p>
+        <form class="waitlist reveal" id="waitlistForm">
+          <label class="honeypot" for="website">Leave this field empty</label>
+          <input class="honeypot" id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+          <label class="honeypot" for="email">Email address</label>
+          <input id="email" name="email" type="email" required autocomplete="email" placeholder="founder@definitelyreal.ai" />
+          <button type="submit">Join the waitlist ↗</button>
+        </form>
+        <p class="form-status" id="formStatus" aria-live="polite">Launch updates only. No pitch spam.</p>
+        <div class="signals reveal" aria-label="Game teaser">
+          <div class="signal"><b>54</b><span class="mono">Cards in the core deck</span></div>
+          <div class="signal"><b>LIVE</b><span class="mono">Real-world market events</span></div>
+          <div class="signal"><b>1</b><span class="mono">Hidden hustle to finish</span></div>
+          <div class="signal"><b>$1B</b><span class="mono">Portfolio needed to win</span></div>
+        </div>
+      </section>
+      <section class="lockup" aria-label="Valuation Hallucination game preview">
+        <span class="tape mono">Confidential // pre-revenue</span>
+        <img class="product" src="/assets/product-hero-v2.webp" width="1200" height="800" fetchpriority="high" decoding="async" alt="Valuation Hallucination game box and core card-back preview" />
+        <span class="classified mono">Launch deck under review</span>
+      </section>
+    </main>
+  </div>
+  <div class="ticker" aria-hidden="true"><div class="ticker-track mono">CAPITAL IN MOTION ✦ MARKET EVENT PENDING ✦ HUSTLE UNDISCLOSED ✦ DUE DILIGENCE DELAYED ✦ DIRTY TRICKS LOADING ✦ CAPITAL IN MOTION ✦ MARKET EVENT PENDING ✦ HUSTLE UNDISCLOSED ✦ DUE DILIGENCE DELAYED ✦ DIRTY TRICKS LOADING ✦ </div></div>
+  <footer class="page mono">
+    <span>© 2026 Valuation Hallucination</span>
+    <nav class="socials" aria-label="Follow Valuation Hallucination">
+      <a class="social-link" href="https://www.instagram.com/valuationhallucination" target="_blank" rel="noopener" aria-label="Instagram"><i class="social-glyph instagram" aria-hidden="true"></i><span class="social-tooltip">Instagram</span></a>
+      <a class="social-link" href="https://www.tiktok.com/@valuationhallucination" target="_blank" rel="noopener" aria-label="TikTok"><img class="brand-logo" src="/assets/tiktok.svg" width="19" height="19" alt="" aria-hidden="true" /><span class="social-tooltip">TikTok</span></a>
+      <a class="social-link" href="https://x.com/valuationhallucination" target="_blank" rel="noopener" aria-label="X"><span class="social-glyph" aria-hidden="true">𝕏</span><span class="social-tooltip">X</span></a>
+      <a class="social-link" href="https://www.facebook.com/valuationhallucination" target="_blank" rel="noopener" aria-label="Facebook"><img class="brand-logo" src="/assets/facebook.svg" width="19" height="19" alt="" aria-hidden="true" /><span class="social-tooltip">Facebook</span></a>
+    </nav>
+  </footer>
+  <script>
+    const waitlistForm = document.getElementById('waitlistForm');
+    const formStatus = document.getElementById('formStatus');
+    waitlistForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = waitlistForm.querySelector('button');
+      const email = document.getElementById('email');
+      button.disabled = true;
+      button.textContent = 'Joining…';
+      formStatus.classList.remove('error');
+      try {
+        const response = await fetch('https://valuation-hallucination-market.sharal363137.chatgpt.site/v1/waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.value, website: document.getElementById('website').value, source: 'coming-soon' })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || 'Could not join the waitlist.');
+        formStatus.textContent = result.status === 'already_joined' ? "You're already on the cap table." : "You're in. We'll email you when Kickstarter goes live.";
+        email.value = '';
+      } catch (error) {
+        formStatus.classList.add('error');
+        formStatus.textContent = error.message || 'Could not join right now. Please try again.';
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Join the waitlist ↗';
+      }
+    });
+  </script>
+</body>
+</html>
