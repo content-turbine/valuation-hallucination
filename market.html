@@ -39,7 +39,9 @@
     .effect { margin-top:auto; padding-top:13px; border-top:3px solid var(--ink); font:500 clamp(.61rem,2.25vw,.75rem)/1.45 "DM Mono",monospace; text-transform:uppercase; }
     .stamp { position:absolute; right:-10px; top:45%; padding:7px 9px; color:white; background:var(--accent); border:2px solid var(--ink); transform:rotate(7deg); font-size:clamp(.48rem,1.8vw,.59rem); }
     .controls { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; border-top:1px solid var(--line); }
-    .caption { color:rgba(255,255,255,.48); font-size:.52rem; line-height:1.35; }
+    .caption { color:rgba(255,255,255,.48); font-size:.52rem; line-height:1.35; overflow:hidden; }
+    .caption a { display:block; max-width:100%; overflow:hidden; color:rgba(255,255,255,.72); text-overflow:ellipsis; white-space:nowrap; text-decoration:none; }
+    .caption a:hover,.caption a:focus-visible { color:var(--acid); outline:none; }
     .draw { min-height:38px; border:1px solid var(--acid); padding:0 12px; cursor:pointer; background:transparent; color:var(--acid); font:500 .57rem "DM Mono",monospace; text-transform:uppercase; letter-spacing:.06em; }
     .draw:hover,.draw:focus-visible { color:var(--ink); background:var(--acid); outline:none; }
     .draw:disabled { opacity:.55; cursor:wait; }
@@ -52,7 +54,7 @@
   <div class="screen">
     <header>
       <img class="logo" src="/assets/logo-light.webp" width="520" height="201" alt="Valuation Hallucination" />
-      <span class="state mono">Market active</span>
+      <span class="state mono" id="marketState">Market active</span>
     </header>
     <main>
       <section class="deck" aria-live="polite" aria-busy="false">
@@ -67,8 +69,8 @@
       </section>
     </main>
     <div class="controls">
-      <span class="caption mono">Place phone face-up<br />at the center of the table</span>
-      <button class="draw" id="drawButton" type="button">Draw another ↻</button>
+      <span class="caption mono"><a id="sourceLink" href="#" target="_blank" rel="noreferrer">Loading market source…</a>Place phone face-up at the center of the table</span>
+      <button class="draw" id="drawButton" type="button">Refresh ↻</button>
     </div>
   </div>
   <script>
@@ -77,22 +79,28 @@
     const drawButton = document.getElementById('drawButton');
     const fields = ['signal','title','description','effect','target'];
 
-    function render(data) {
+    function render(data, payload) {
       card.className = `card ${data.polarity}`;
-      document.getElementById('polarity').textContent = `${data.polarity} event`;
-      document.getElementById('cardId').textContent = `Market // ${String(data.id).padStart(2,'0')}`;
+      document.getElementById('polarity').textContent = payload.selection_method === 'slack_override' ? 'Human pick' : `${data.polarity} event`;
+      const stamp = payload.generated_at ? new Date(payload.generated_at).toLocaleString([], { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }) : 'Current round';
+      document.getElementById('cardId').textContent = stamp;
       fields.forEach((field) => { document.getElementById(field).textContent = data[field]; });
+      document.getElementById('marketState').textContent = payload.selection_method === 'slack_override' ? 'Human override' : payload.selection_method === 'automatic' ? 'Live market signal' : 'Fallback card';
+      const source = document.getElementById('sourceLink');
+      source.textContent = data.source_name ? `${data.source_name} ↗` : 'Market source';
+      source.href = data.source_url || '#';
+      source.hidden = !data.source_url;
     }
 
-    async function draw(mode = 'daily') {
+    async function draw() {
       card.classList.add('loading');
       deck.setAttribute('aria-busy','true');
       drawButton.disabled = true;
       try {
-        const response = await fetch(`/api/market${mode === 'random' ? '?draw=random' : ''}`, { cache:'no-store' });
+        const response = await fetch('/api/market', { cache:'no-store' });
         if (!response.ok) throw new Error('Market feed unavailable');
         const result = await response.json();
-        setTimeout(() => render(result.card), 150);
+        setTimeout(() => render(result.card, result), 150);
       } catch (error) {
         document.getElementById('description').textContent = 'The market feed glitched. Try drawing again.';
       } finally {
@@ -104,8 +112,9 @@
       }
     }
 
-    drawButton.addEventListener('click', () => draw('random'));
+    drawButton.addEventListener('click', draw);
     draw();
+    window.setInterval(draw, 60_000);
   </script>
 </body>
 </html>
