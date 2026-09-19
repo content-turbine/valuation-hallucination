@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Valuation Hallucination — Coming Soon</title>
-  <meta name="description" content="A satirical card game about AI startups, hidden side hustles, dirty tricks, market chaos, and the race to a $1 billion valuation." />
+  <meta name="description" content="A fast card game where you build a startup, hire agents, survive market chaos and race to a $1 billion valuation." />
   <meta name="theme-color" content="#07090b" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,13 +28,16 @@
     .status { display:inline-flex; align-items:center; gap:10px; font-size:.72rem; color:var(--acid); white-space:nowrap; }
     .status::before { content:""; width:9px; height:9px; background:var(--acid); box-shadow:0 0 15px var(--acid); animation:pulse 1.8s ease-in-out infinite; }
     @keyframes pulse { 50% { opacity:.35; } }
-    main { min-height:calc(100vh - 74px); display:grid; grid-template-columns:.95fr 1.05fr; align-items:center; gap:46px; padding:48px 0 44px; }
+    main { min-height:calc(100vh - 74px); display:grid; grid-template-columns:.95fr 1.05fr; align-items:start; gap:30px; padding:38px 0 44px; }
     .eyebrow { display:flex; align-items:center; gap:12px; color:var(--acid); font-size:.75rem; }
     .eyebrow::before { content:""; width:42px; height:9px; background:var(--pink); }
     h1 { margin:22px 0; max-width:700px; font-size:clamp(4rem,7.2vw,7.4rem); line-height:.82; letter-spacing:-.085em; text-transform:uppercase; }
     h1 span { display:block; color:var(--acid); text-shadow:5px 5px 0 var(--violet); }
     .lead { margin:0; max-width:620px; color:rgba(255,255,255,.78); font-size:clamp(1.05rem,1.8vw,1.35rem); line-height:1.55; }
     .lead strong { color:white; }
+    .founders-offer { max-width:620px; margin-top:20px; padding:13px 15px; border-left:4px solid var(--acid); background:rgba(217,255,0,.08); }
+    .founders-offer b { display:block; color:var(--acid); font-size:.69rem; }
+    .founders-offer span { display:block; margin-top:6px; color:rgba(255,255,255,.76); font-size:.83rem; line-height:1.45; }
     .waitlist { display:flex; gap:9px; margin-top:28px; max-width:620px; }
     .waitlist input[type="email"] { flex:1; min-width:0; min-height:52px; padding:0 16px; border:1px solid var(--line); border-radius:0; background:rgba(255,255,255,.08); color:white; font:500 1rem "Space Grotesk",sans-serif; outline:none; }
     .waitlist input[type="email"]::placeholder { color:rgba(255,255,255,.48); }
@@ -45,16 +48,24 @@
     .form-status.error { color:#ff7caf; }
     .consent { display:flex; align-items:flex-start; gap:8px; max-width:620px; margin:12px 0 0; color:rgba(255,255,255,.5); font-size:.67rem; line-height:1.45; }
     .consent input { margin-top:2px; accent-color:var(--acid); }
+    .consent a { color:rgba(255,255,255,.78); text-underline-offset:2px; }
+    .consent a:hover,.consent a:focus-visible { color:var(--acid); outline:none; }
     .signup-result { max-width:620px; margin-top:18px; border:1px solid var(--acid); background:rgba(217,255,0,.075); padding:18px; box-shadow:6px 6px 0 rgba(111,48,255,.85); }
     .signup-result[hidden] { display:none; }
     .signup-kicker { margin:0 0 11px; color:var(--acid); font-size:.63rem; }
-    .signup-grid { display:grid; grid-template-columns:1.4fr .7fr .7fr; gap:9px; }
+    .signup-grid { display:grid; grid-template-columns:1.25fr .85fr .75fr .75fr; gap:9px; }
     .signup-stat { padding:11px; border:1px solid var(--line); background:rgba(0,0,0,.34); }
     .signup-stat b { display:block; color:white; font-size:1rem; line-height:1.12; }
     .signup-stat span { display:block; margin-top:6px; color:rgba(255,255,255,.48); font-size:.56rem; }
     .referral { display:flex; gap:8px; margin-top:10px; }
     .referral input { min-width:0; flex:1; padding:0 10px; border:1px solid var(--line); background:rgba(0,0,0,.45); color:rgba(255,255,255,.74); font:.62rem "DM Mono",monospace; }
     .referral button { min-height:40px; border:1px solid var(--acid); background:transparent; color:var(--acid); padding:0 11px; cursor:pointer; font:.6rem "DM Mono",monospace; text-transform:uppercase; }
+    .reward-track { display:grid; grid-template-columns:repeat(5,1fr); gap:7px; margin-top:12px; }
+    .milestone { min-height:76px; padding:9px; border:1px solid var(--line); background:rgba(0,0,0,.32); color:rgba(255,255,255,.4); }
+    .milestone b { display:block; color:inherit; font-size:.63rem; }
+    .milestone span { display:block; margin-top:6px; font-size:.52rem; line-height:1.35; }
+    .milestone.unlocked { color:var(--ink); border-color:var(--acid); background:var(--acid); }
+    .milestone.reserved { color:white; border-color:var(--violet); background:rgba(111,48,255,.34); }
     .honeypot { position:absolute!important; width:1px!important; height:1px!important; overflow:hidden!important; clip:rect(0 0 0 0)!important; white-space:nowrap!important; }
     .signal-link { color:inherit; text-decoration:none; }
     .signal-link .signal { transition:border-color .18s ease,transform .18s ease,background .18s ease; }
@@ -63,15 +74,18 @@
     .signal { border:1px solid var(--line); background:rgba(255,255,255,.045); padding:16px; min-height:104px; }
     .signal b { display:block; margin-bottom:8px; color:var(--acid); font-size:1.55rem; line-height:1; }
     .signal span { color:rgba(255,255,255,.62); font-size:.68rem; line-height:1.45; }
-    .lockup { position:relative; min-height:610px; display:grid; place-items:center; }
+    .lockup { position:sticky; top:86px; align-self:start; min-height:610px; display:grid; place-items:start center; padding-top:12px; }
     .lockup::before { content:""; position:absolute; width:68%; aspect-ratio:1; border-radius:50%; background:var(--acid); box-shadow:0 0 120px rgba(217,255,0,.42); filter:blur(3px); }
-    .product { position:relative; z-index:2; width:min(720px,100%); height:auto; transform:rotate(-1deg); filter:contrast(1.08) saturate(1.06) drop-shadow(0 28px 55px rgba(0,0,0,.68)); -webkit-mask-image:radial-gradient(ellipse 92% 90% at 50% 50%,#000 72%,transparent 100%); mask-image:radial-gradient(ellipse 92% 90% at 50% 50%,#000 72%,transparent 100%); }
+    .product { position:relative; z-index:2; width:min(820px,116%); max-width:none; height:auto; transform:rotate(-1deg); }
     .classified { position:absolute; z-index:3; right:1%; bottom:8%; background:var(--pink); color:white; border:2px solid white; padding:10px 14px; transform:rotate(4deg); font-size:.7rem; box-shadow:6px 6px 0 var(--violet); }
     .tape { position:absolute; z-index:4; top:8%; left:6%; padding:9px 13px; background:var(--paper); color:var(--ink); border:2px solid var(--ink); transform:rotate(-4deg); font-size:.66rem; }
     .ticker { position:relative; min-height:48px; display:flex; align-items:center; border-block:1px solid var(--line); overflow:hidden; background:rgba(0,0,0,.52); }
     .ticker-track { display:inline-block; min-width:200%; white-space:nowrap; padding:13px 240px 13px 0; color:var(--acid); font-size:.7rem; animation:ticker 24s linear infinite; }
     @keyframes ticker { to { transform:translateX(-50%); } }
     footer { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:11px 0 13px; color:rgba(255,255,255,.45); font-size:.58rem; }
+    footer a { color:inherit; text-decoration:none; }
+    footer a:hover,footer a:focus-visible { color:var(--acid); outline:none; }
+    .legal-links { display:flex; align-items:center; gap:12px; }
     .made { text-align:right; }
     .made b { color:var(--pink); font-size:.82rem; }
     .socials { position:absolute; z-index:2; right:max(13px,calc((100vw - 1260px)/2)); top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:7px; padding:5px 0 5px 54px; background:linear-gradient(90deg,transparent 0,var(--ink) 32%); }
@@ -86,8 +100,8 @@
     .reveal { opacity:0; transform:translateY(16px); animation:reveal .8s ease forwards; }
     .reveal:nth-child(2) { animation-delay:.12s; } .reveal:nth-child(3) { animation-delay:.22s; } .reveal:nth-child(4) { animation-delay:.32s; }
     @keyframes reveal { to { opacity:1; transform:none; } }
-    @media (max-width:900px) { .nav{min-height:68px} main{grid-template-columns:1fr;padding-top:46px;gap:24px} h1{font-size:clamp(3.8rem,15vw,6.7rem)} .lockup{min-height:450px}.lockup::before{width:65%} }
-    @media (max-width:620px) { .page{width:min(100% - 26px,1260px)} .logo{width:250px}.status span{display:none} main{min-height:auto} h1{font-size:clamp(3.4rem,17vw,4.8rem)} .waitlist{display:grid}.waitlist button{width:100%}.signals{grid-template-columns:1fr 1fr}.signal{padding:12px 10px}.signal b{font-size:1.25rem}.signup-grid{grid-template-columns:1fr 1fr}.signup-stat:first-child{grid-column:1/-1}.referral{display:grid}.referral input{min-height:40px}.lockup{min-height:330px;margin-inline:-8px}.classified{right:-1%;bottom:4%}.ticker{min-height:44px}.ticker-track{padding-block:11px}.socials{right:8px;gap:5px;padding-left:42px}.social-link{width:31px;height:31px}footer{gap:10px;padding:9px 0 11px;font-size:.5rem}.made{max-width:48%} }
+    @media (max-width:900px) { .nav{min-height:68px} main{grid-template-columns:1fr;padding-top:38px;gap:12px} h1{font-size:clamp(3.8rem,15vw,6.7rem)} .lockup{position:relative;top:auto;min-height:450px;place-items:center;padding-top:0}.product{width:min(760px,108%)}.lockup::before{width:65%} }
+    @media (max-width:620px) { .page{width:min(100% - 26px,1260px)} .logo{width:250px}.status span{display:none} main{min-height:auto;padding-top:28px} h1{font-size:clamp(3.4rem,17vw,4.8rem)} .waitlist{display:grid}.waitlist button{width:100%}.signals{grid-template-columns:1fr 1fr}.signal{padding:12px 10px}.signal b{font-size:1.25rem}.signup-grid{grid-template-columns:1fr 1fr}.reward-track{grid-template-columns:1fr 1fr}.milestone:last-child{grid-column:1/-1}.referral{display:grid}.referral input{min-height:40px}.lockup{min-height:315px;margin-inline:-13px}.product{width:112%}.classified{right:-1%;bottom:4%}.ticker{min-height:44px}.ticker-track{padding-block:11px}.socials{right:8px;gap:5px;padding-left:42px}.social-link{width:31px;height:31px}footer{gap:10px;padding:9px 0 11px;font-size:.5rem}.legal-links{gap:7px}.made{max-width:48%} }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important} }
   </style>
 </head>
@@ -99,28 +113,38 @@
     </header>
     <main>
       <section aria-labelledby="headline">
-        <div class="eyebrow mono reveal">Market closed // round loading</div>
+        <div class="eyebrow mono reveal">A card game about building a $1B startup</div>
         <h1 id="headline" class="reveal">The <span>$1B race</span> starts soon.</h1>
-        <p class="lead reveal">Capital is moving. Dirty tricks are loading. The market is unstable—and <strong>every founder is hiding a side hustle.</strong></p>
+        <p class="lead reveal"><strong>Build a startup. Hire human and AI agents. Survive market chaos.</strong> Reach a $1B valuation before everyone else, all while hiding a side hustle. Nothing suspicious here. ;)</p>
+        <div class="founders-offer reveal"><b class="mono">Join the Founders’ Round</b><span>Get a Founder ID, climb the valuation leaderboard and help choose a card for the finished game.</span></div>
         <form class="waitlist reveal" id="waitlistForm">
           <label class="honeypot" for="website">Leave this field empty</label>
           <input class="honeypot" id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
           <label class="honeypot" for="email">Email address</label>
           <input id="email" name="email" type="email" required autocomplete="email" placeholder="founder@definitelyreal.ai" />
-          <button type="submit">Join the waitlist ↗</button>
+          <button type="submit">Claim my Founder ID ↗</button>
         </form>
-        <label class="consent reveal"><input id="consent" type="checkbox" required form="waitlistForm" /> <span>I agree to receive Kickstarter launch and game updates. Unsubscribe anytime.</span></label>
-        <p class="form-status" id="formStatus" aria-live="polite">Launch updates only. No pitch spam.</p>
+        <label class="consent reveal"><input id="emailConsent" type="checkbox" required form="waitlistForm" /> <span>Email me the Kickstarter launch and game updates. Unsubscribe anytime.</span></label>
+        <p class="consent reveal">By joining, you confirm you’re 16+ or have guardian permission and agree to the <a href="/terms" target="_blank">Terms</a> and <a href="/privacy" target="_blank">Privacy Notice</a>.</p>
+        <p class="form-status" id="formStatus" aria-live="polite">One email gets you into the game before the game.</p>
         <section class="signup-result" id="signupResult" aria-live="polite" hidden>
           <p class="signup-kicker mono" id="signupKicker">Shell company incorporated // cap table updated</p>
           <div class="signup-grid">
+            <div class="signup-stat"><b id="founderId">VH-00001</b><span class="mono">Founder ID</span></div>
             <div class="signup-stat"><b id="personaTitle">The Agent Wrangler</b><span class="mono">Founder archetype</span></div>
             <div class="signup-stat"><b id="personaValue">$140M</b><span class="mono">Pre-revenue valuation</span></div>
-            <div class="signup-stat"><b id="waitlistPosition">#001</b><span class="mono">Waitlist position</span></div>
+            <div class="signup-stat"><b id="leaderboardRank">#001</b><span class="mono">Founder leaderboard</span></div>
           </div>
           <div class="referral">
             <input id="referralLink" type="text" readonly aria-label="Your referral link" />
             <button id="copyReferral" type="button">Copy link // +$50M per referral</button>
+          </div>
+          <div class="reward-track" aria-label="Founders’ Round unlocks">
+            <div class="milestone unlocked" id="milestoneJoin"><b class="mono">Joined</b><span>Founder ID + one community vote</span></div>
+            <div class="milestone" id="milestoneOne"><b class="mono">1 referral</b><span>+$50M and leaderboard boost</span></div>
+            <div class="milestone" id="milestoneThree"><b class="mono">3 referrals</b><span>Unlock a second card vote</span></div>
+            <div class="milestone" id="milestoneFive"><b class="mono">5 referrals</b><span>Name on the digital Cap Table</span></div>
+            <div class="milestone reserved" id="milestoneBonus"><b class="mono">48-hour backer</b><span>Founder Edition bonus reserved</span></div>
           </div>
         </section>
         <div class="signals reveal" aria-label="Game teaser">
@@ -147,18 +171,79 @@
     </nav>
   </div>
   <footer class="page mono">
-    <span>© 2026 Valuation Hallucination</span>
-    <span class="made">Made with <b>♥</b>, caffeine &amp; one last commit.</span>
+    <span class="legal-links">© 2026 Valuation Hallucination <a href="/terms">Terms</a> <a href="/privacy">Privacy</a></span>
+    <span class="made">Made by techies, for techies, with <b>♥</b> &amp; caffeine.</span>
   </footer>
   <script>
+    const query = new URLSearchParams(window.location.search);
+    const id = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    const getStored = (key, fallback) => {
+      try { return localStorage.getItem(key) || fallback; } catch (_) { return fallback; }
+    };
+    const setStored = (key, value) => {
+      try { localStorage.setItem(key, value); } catch (_) {}
+    };
+    const visitorId = getStored('vh_visitor_id', id());
+    setStored('vh_visitor_id', visitorId);
+    const sessionId = sessionStorage.getItem('vh_session_id') || id();
+    sessionStorage.setItem('vh_session_id', sessionId);
+    const firstTouchKey = 'vh_first_touch';
+    let firstTouch;
+    try { firstTouch = JSON.parse(localStorage.getItem(firstTouchKey) || 'null'); } catch (_) { firstTouch = null; }
+    if (!firstTouch) {
+      firstTouch = {
+        utm_source: query.get('utm_source') || (query.get('ref') ? 'referral' : 'direct'),
+        utm_medium: query.get('utm_medium') || '',
+        utm_campaign: query.get('utm_campaign') || '',
+        utm_content: query.get('utm_content') || '',
+        subreddit: query.get('subreddit') || '',
+        reddit_post_id: query.get('reddit_post_id') || '',
+        referrer_url: document.referrer || '',
+        landing_path: `${location.pathname}${location.search}`
+      };
+      try { localStorage.setItem(firstTouchKey, JSON.stringify(firstTouch)); } catch (_) {}
+    }
+    const campaignContext = {
+      visitor_id: visitorId,
+      session_id: sessionId,
+      utm_source: query.get('utm_source') || firstTouch.utm_source || 'direct',
+      utm_medium: query.get('utm_medium') || firstTouch.utm_medium || '',
+      utm_campaign: query.get('utm_campaign') || firstTouch.utm_campaign || '',
+      utm_content: query.get('utm_content') || firstTouch.utm_content || '',
+      subreddit: query.get('subreddit') || firstTouch.subreddit || '',
+      reddit_post_id: query.get('reddit_post_id') || firstTouch.reddit_post_id || '',
+      referrer_url: firstTouch.referrer_url || '',
+      landing_path: firstTouch.landing_path || location.pathname
+    };
+    const track = (eventName, properties = {}) => {
+      const payload = JSON.stringify({ event_name: eventName, ...campaignContext, properties });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/events', new Blob([payload], { type: 'application/json' }));
+      } else {
+        fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
+      }
+    };
+    track('page_view');
+
     const waitlistForm = document.getElementById('waitlistForm');
     const formStatus = document.getElementById('formStatus');
     const signupResult = document.getElementById('signupResult');
-    const referralCode = new URLSearchParams(window.location.search).get('ref');
+    const referralCode = query.get('ref');
+    let started = false;
+    waitlistForm.addEventListener('focusin', () => {
+      if (!started) { started = true; track('waitlist_start'); }
+    });
     waitlistForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const button = waitlistForm.querySelector('button');
       const email = document.getElementById('email');
+      const emailConsent = document.getElementById('emailConsent');
+      if (!emailConsent.checked) {
+        formStatus.classList.add('error');
+        formStatus.textContent = 'Tick the email box to join the Founders’ Round.';
+        emailConsent.focus();
+        return;
+      }
       button.disabled = true;
       button.textContent = 'Joining…';
       formStatus.classList.remove('error');
@@ -166,16 +251,29 @@
         const response = await fetch('/api/waitlist', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.value, website: document.getElementById('website').value, source: 'coming-soon', referred_by: referralCode })
+          body: JSON.stringify({
+            email: email.value,
+            website: document.getElementById('website').value,
+            source: 'coming-soon',
+            referred_by: referralCode,
+            ...campaignContext,
+            terms_accepted: true,
+            age_confirmed: true,
+            marketing_consent: emailConsent.checked
+          })
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.detail || 'Could not join the waitlist.');
         formStatus.textContent = result.status === 'already_joined' ? "You're already on the cap table. Your valuation is intact." : "You're in. Your suspiciously valuable founder profile is ready.";
         document.getElementById('signupKicker').textContent = result.status === 'already_joined' ? 'Identity recovered // cap table unchanged' : 'Shell company incorporated // cap table updated';
+        document.getElementById('founderId').textContent = result.founder_id;
         document.getElementById('personaTitle').textContent = result.persona.title;
         document.getElementById('personaValue').textContent = `$${result.persona.valuation_millions}M`;
-        document.getElementById('waitlistPosition').textContent = `#${String(result.position).padStart(3,'0')}`;
+        document.getElementById('leaderboardRank').textContent = `#${String(result.leaderboard_rank).padStart(3,'0')}`;
         document.getElementById('referralLink').value = `${window.location.origin}/?ref=${result.referral_code}`;
+        document.getElementById('milestoneOne').classList.toggle('unlocked', result.referral_count >= 1);
+        document.getElementById('milestoneThree').classList.toggle('unlocked', result.referral_count >= 3);
+        document.getElementById('milestoneFive').classList.toggle('unlocked', result.referral_count >= 5);
         signupResult.hidden = false;
         email.value = '';
       } catch (error) {
@@ -183,11 +281,12 @@
         formStatus.textContent = error.message || 'Could not join right now. Please try again.';
       } finally {
         button.disabled = false;
-        button.textContent = 'Join the waitlist ↗';
+        button.textContent = 'Claim my Founder ID ↗';
       }
     });
     document.getElementById('copyReferral').addEventListener('click', async (event) => {
       const field = document.getElementById('referralLink');
+      track('referral_link_copy', { referral_code: field.value.split('ref=')[1] || '' });
       try {
         await navigator.clipboard.writeText(field.value);
         event.currentTarget.textContent = 'Copied // valuation pending';

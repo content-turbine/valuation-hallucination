@@ -10,6 +10,9 @@ CREATE TABLE IF NOT EXISTS valuation_hallucination.waitlist (
   source TEXT NOT NULL DEFAULT 'coming-soon',
   consent_text TEXT NOT NULL,
   consent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  terms_version TEXT,
+  terms_accepted_at TIMESTAMPTZ,
+  age_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
