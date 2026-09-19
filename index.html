@@ -45,8 +45,6 @@
     .form-status.error { color:#ff7caf; }
     .consent { display:flex; align-items:flex-start; gap:8px; max-width:620px; margin:12px 0 0; color:rgba(255,255,255,.5); font-size:.67rem; line-height:1.45; }
     .consent input { margin-top:2px; accent-color:var(--acid); }
-    .market-link { display:inline-flex; align-items:center; min-height:42px; margin-top:9px; padding:0 12px; border:1px solid var(--line); color:white; text-decoration:none; font-size:.64rem; transition:.18s ease; }
-    .market-link:hover,.market-link:focus-visible { color:var(--ink); background:var(--pink); border-color:var(--pink); outline:none; }
     .signup-result { max-width:620px; margin-top:18px; border:1px solid var(--acid); background:rgba(217,255,0,.075); padding:18px; box-shadow:6px 6px 0 rgba(111,48,255,.85); }
     .signup-result[hidden] { display:none; }
     .signup-kicker { margin:0 0 11px; color:var(--acid); font-size:.63rem; }
@@ -57,11 +55,8 @@
     .referral { display:flex; gap:8px; margin-top:10px; }
     .referral input { min-width:0; flex:1; padding:0 10px; border:1px solid var(--line); background:rgba(0,0,0,.45); color:rgba(255,255,255,.74); font:.62rem "DM Mono",monospace; }
     .referral button { min-height:40px; border:1px solid var(--acid); background:transparent; color:var(--acid); padding:0 11px; cursor:pointer; font:.6rem "DM Mono",monospace; text-transform:uppercase; }
-    .signal-link { color:inherit; text-decoration:none; }
-    .signal-link .signal { transition:border-color .18s ease,transform .18s ease; }
-    .signal-link:hover .signal,.signal-link:focus-visible .signal { border-color:var(--acid); transform:translateY(-2px); }
     .honeypot { position:absolute!important; width:1px!important; height:1px!important; overflow:hidden!important; clip:rect(0 0 0 0)!important; white-space:nowrap!important; }
-    .signals { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:26px; max-width:760px; }
+    .signals { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:26px; max-width:620px; }
     .signal { border:1px solid var(--line); background:rgba(255,255,255,.045); padding:16px; min-height:104px; }
     .signal b { display:block; margin-bottom:8px; color:var(--acid); font-size:1.55rem; line-height:1; }
     .signal span { color:rgba(255,255,255,.62); font-size:.68rem; line-height:1.45; }
@@ -114,7 +109,6 @@
         </form>
         <label class="consent reveal"><input id="consent" type="checkbox" required form="waitlistForm" /> <span>I agree to receive Kickstarter launch and game updates. Unsubscribe anytime.</span></label>
         <p class="form-status" id="formStatus" aria-live="polite">Launch updates only. No pitch spam.</p>
-        <a class="market-link mono" href="/market">Try a live market card →</a>
         <section class="signup-result" id="signupResult" aria-live="polite" hidden>
           <p class="signup-kicker mono" id="signupKicker">Shell company incorporated // cap table updated</p>
           <div class="signup-grid">
@@ -129,7 +123,6 @@
         </section>
         <div class="signals reveal" aria-label="Game teaser">
           <div class="signal"><b>54</b><span class="mono">Cards in the core deck</span></div>
-          <a class="signal-link" href="/market"><div class="signal"><b>LIVE</b><span class="mono">Try a market event →</span></div></a>
           <div class="signal"><b>1</b><span class="mono">Hidden hustle to finish</span></div>
           <div class="signal"><b>$1B</b><span class="mono">Portfolio needed to win</span></div>
         </div>
