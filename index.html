@@ -56,7 +56,10 @@
     .referral input { min-width:0; flex:1; padding:0 10px; border:1px solid var(--line); background:rgba(0,0,0,.45); color:rgba(255,255,255,.74); font:.62rem "DM Mono",monospace; }
     .referral button { min-height:40px; border:1px solid var(--acid); background:transparent; color:var(--acid); padding:0 11px; cursor:pointer; font:.6rem "DM Mono",monospace; text-transform:uppercase; }
     .honeypot { position:absolute!important; width:1px!important; height:1px!important; overflow:hidden!important; clip:rect(0 0 0 0)!important; white-space:nowrap!important; }
-    .signals { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:26px; max-width:620px; }
+    .signal-link { color:inherit; text-decoration:none; }
+    .signal-link .signal { transition:border-color .18s ease,transform .18s ease,background .18s ease; }
+    .signal-link:hover .signal,.signal-link:focus-visible .signal { border-color:var(--acid); background:rgba(217,255,0,.09); transform:translateY(-2px); }
+    .signals { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:26px; max-width:760px; }
     .signal { border:1px solid var(--line); background:rgba(255,255,255,.045); padding:16px; min-height:104px; }
     .signal b { display:block; margin-bottom:8px; color:var(--acid); font-size:1.55rem; line-height:1; }
     .signal span { color:rgba(255,255,255,.62); font-size:.68rem; line-height:1.45; }
@@ -122,6 +125,7 @@
         </section>
         <div class="signals reveal" aria-label="Game teaser">
           <div class="signal"><b>54</b><span class="mono">Cards in the core deck</span></div>
+          <a class="signal-link" href="https://valuation-hallucination-market.sharal363137.chatgpt.site/"><div class="signal"><b>LIVE</b><span class="mono">Draw a market card →</span></div></a>
           <div class="signal"><b>1</b><span class="mono">Hidden hustle to finish</span></div>
           <div class="signal"><b>$1B</b><span class="mono">Portfolio needed to win</span></div>
         </div>
