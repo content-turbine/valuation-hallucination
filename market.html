@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Live Market Card — Valuation Hallucination</title>
+  <meta name="description" content="Draw a live market event for Valuation Hallucination and place your phone at the center of the table." />
+  <meta name="theme-color" content="#07090b" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="/assets/core-icon.png" />
+  <style>
+    :root { --ink:#07090b; --paper:#f8f5ee; --acid:#d9ff00; --pink:#ff1493; --violet:#6f30ff; --line:rgba(255,255,255,.22); --card:#f8f5ee; }
+    * { box-sizing:border-box; }
+    html { color-scheme:dark; }
+    body { margin:0; min-height:100svh; color:white; background:radial-gradient(circle at 50% 20%,rgba(111,48,255,.23),transparent 32rem),var(--ink); font-family:"Space Grotesk",system-ui,sans-serif; }
+    body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.15; background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px); background-size:30px 30px; }
+    button,a { font:inherit; }
+    .mono { font-family:"DM Mono",monospace; text-transform:uppercase; letter-spacing:.08em; }
+    .shell { width:min(1120px,calc(100% - 28px)); margin:auto; position:relative; padding:18px 0 max(28px,env(safe-area-inset-bottom)); }
+    header { display:flex; justify-content:space-between; align-items:center; gap:18px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+    .logo { width:min(300px,62vw); }
+    .back { color:rgba(255,255,255,.68); text-decoration:none; font-size:.65rem; white-space:nowrap; }
+    main { display:grid; grid-template-columns:minmax(0,.82fr) minmax(330px,.68fr); gap:clamp(28px,6vw,80px); align-items:center; padding:clamp(30px,5vw,64px) 0 24px; }
+    .intro { max-width:560px; }
+    .live { display:inline-flex; gap:9px; align-items:center; color:var(--acid); font-size:.68rem; }
+    .live::before { content:""; width:9px; height:9px; background:var(--pink); box-shadow:0 0 16px var(--pink); animation:pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity:.3; } }
+    h1 { margin:18px 0 16px; font-size:clamp(3.5rem,8vw,7rem); line-height:.84; letter-spacing:-.08em; text-transform:uppercase; }
+    h1 span { display:block; color:var(--acid); text-shadow:4px 4px 0 var(--violet); }
+    .dek { color:rgba(255,255,255,.72); line-height:1.6; font-size:1.03rem; }
+    .notice { margin-top:18px; border-left:5px solid var(--pink); padding:10px 13px; color:rgba(255,255,255,.58); font-size:.65rem; line-height:1.55; }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
+    .action { min-height:50px; border:2px solid var(--ink); padding:0 17px; cursor:pointer; background:var(--acid); color:var(--ink); box-shadow:5px 5px 0 var(--violet); font:500 .68rem "DM Mono",monospace; text-transform:uppercase; letter-spacing:.06em; }
+    .action.secondary { color:white; background:transparent; border-color:var(--line); box-shadow:none; }
+    .action:disabled { opacity:.6; cursor:wait; }
+    .deck { position:relative; display:grid; place-items:center; min-height:570px; perspective:1200px; }
+    .deck::before,.deck::after { content:""; position:absolute; width:min(360px,86vw); aspect-ratio:2.5/3.5; border:3px solid var(--ink); border-radius:20px; background:var(--violet); box-shadow:10px 12px 0 rgba(0,0,0,.65); }
+    .deck::before { transform:rotate(-7deg) translate(-16px,5px); }
+    .deck::after { background:var(--pink); transform:rotate(7deg) translate(17px,5px); }
+    .card { --accent:var(--acid); position:relative; z-index:3; width:min(360px,86vw); aspect-ratio:2.5/3.5; border:3px solid var(--ink); border-radius:20px; background:var(--card); color:var(--ink); box-shadow:11px 14px 0 rgba(0,0,0,.72); padding:22px; display:flex; flex-direction:column; transform:rotate(-1deg); transition:transform .35s ease,opacity .25s ease; }
+    .card.negative { --accent:var(--pink); }
+    .card.conditional { --accent:var(--violet); }
+    .card.loading { transform:rotateY(88deg) scale(.94); opacity:.25; }
+    .card-top { display:flex; justify-content:space-between; gap:12px; font-size:.63rem; }
+    .badge { color:white; background:var(--accent); border:2px solid var(--ink); padding:7px 9px; }
+    .card.positive .badge { color:var(--ink); }
+    .signal { margin:auto 0 18px; color:var(--accent); -webkit-text-stroke:2px var(--ink); paint-order:stroke fill; font-weight:700; font-size:clamp(3.1rem,13vw,5.7rem); line-height:.85; letter-spacing:-.08em; }
+    .card-title { margin:0; font-size:2.05rem; line-height:.9; letter-spacing:-.06em; text-transform:uppercase; }
+    .description { margin:14px 0; font-size:.89rem; line-height:1.35; }
+    .effect { margin-top:auto; padding-top:14px; border-top:3px solid var(--ink); font:500 .72rem/1.45 "DM Mono",monospace; text-transform:uppercase; }
+    .stamp { position:absolute; right:-18px; top:45%; padding:8px 11px; color:white; background:var(--accent); border:2px solid var(--ink); transform:rotate(8deg); font-size:.58rem; }
+    .table-note { display:none; }
+    body.table-mode .shell { width:100%; min-height:100svh; padding:0; display:grid; place-items:center; }
+    body.table-mode header,body.table-mode .intro,body.table-mode .deck::before,body.table-mode .deck::after { display:none; }
+    body.table-mode main { display:block; padding:0; }
+    body.table-mode .deck { min-height:100svh; padding:18px; }
+    body.table-mode .card { width:min(430px,86vw); max-height:88svh; box-shadow:0 0 0 6px rgba(255,255,255,.08),0 0 90px color-mix(in srgb,var(--accent) 35%,transparent); transform:none; }
+    body.table-mode .table-note { display:block; position:fixed; z-index:8; top:max(10px,env(safe-area-inset-top)); left:50%; transform:translateX(-50%); width:max-content; max-width:88vw; padding:7px 10px; background:var(--ink); border:1px solid var(--line); font-size:.58rem; }
+    .exit-table { display:none; position:fixed; z-index:9; right:12px; bottom:max(12px,env(safe-area-inset-bottom)); min-height:42px; border:1px solid var(--line); background:var(--ink); color:white; padding:0 13px; font-size:.6rem; }
+    body.table-mode .exit-table { display:block; }
+    @media (max-width:760px) { main{grid-template-columns:1fr;padding-top:28px}.intro{text-align:center;margin:auto}.live{justify-content:center}h1{font-size:clamp(3.3rem,17vw,5.1rem)}.actions{justify-content:center}.notice{text-align:left}.deck{min-height:535px;margin-top:4px} }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important} }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <img class="logo" src="/assets/logo-light.webp" width="520" height="201" alt="Valuation Hallucination" />
+      <a class="back mono" href="/">← Coming soon</a>
+    </header>
+    <main>
+      <section class="intro">
+        <div class="live mono">Live market simulator</div>
+        <h1>Draw the <span>market.</span></h1>
+        <p class="dek">The market changes the rules for everyone. Draw a card, read it aloud, then leave this phone face-up at the center of the table.</p>
+        <div class="actions">
+          <button class="action" id="drawButton" type="button">Reroll the market ↻</button>
+          <button class="action secondary" id="tableButton" type="button">Apply to the table</button>
+        </div>
+        <p class="notice mono">Pre-launch preview: these mechanics are live now. The production feed will translate selected real-world headlines into balanced game effects.</p>
+      </section>
+      <section class="deck" aria-live="polite" aria-busy="false">
+        <article class="card positive" id="marketCard">
+          <div class="card-top mono"><span class="badge" id="polarity">Positive event</span><span id="cardId">Market // 06</span></div>
+          <div class="signal" id="signal">+$100M</div>
+          <h2 class="card-title" id="title">Hype Train</h2>
+          <p class="description" id="description">AI is on every front page and nobody is checking the unit economics.</p>
+          <p class="effect" id="effect">Every player immediately gains $100M in valuation.</p>
+          <span class="stamp mono" id="target">Every company</span>
+        </article>
+      </section>
+    </main>
+    <div class="table-note mono">Active market event // applies to every player</div>
+    <button class="exit-table mono" id="exitTable" type="button">Exit table view</button>
+  </div>
+  <script>
+    const card = document.getElementById('marketCard');
+    const deck = document.querySelector('.deck');
+    const drawButton = document.getElementById('drawButton');
+    const tableButton = document.getElementById('tableButton');
+    const fields = ['signal','title','description','effect','target'];
+
+    function render(data) {
+      card.className = `card ${data.polarity}`;
+      document.getElementById('polarity').textContent = `${data.polarity} event`;
+      document.getElementById('cardId').textContent = `Market // ${String(data.id).padStart(2,'0')}`;
+      fields.forEach((field) => { document.getElementById(field).textContent = data[field]; });
+    }
+
+    async function draw(mode = 'daily') {
+      card.classList.add('loading');
+      deck.setAttribute('aria-busy','true');
+      drawButton.disabled = true;
+      try {
+        const response = await fetch(`/api/market${mode === 'random' ? '?draw=random' : ''}`, { cache:'no-store' });
+        if (!response.ok) throw new Error('Market feed unavailable');
+        const result = await response.json();
+        setTimeout(() => render(result.card), 160);
+      } catch (error) {
+        document.getElementById('description').textContent = 'The market feed glitched. The hype was not backed by infrastructure.';
+      } finally {
+        setTimeout(() => {
+          card.classList.remove('loading');
+          deck.setAttribute('aria-busy','false');
+          drawButton.disabled = false;
+        }, 260);
+      }
+    }
+
+    drawButton.addEventListener('click', () => draw('random'));
+    tableButton.addEventListener('click', () => document.body.classList.add('table-mode'));
+    document.getElementById('exitTable').addEventListener('click', () => document.body.classList.remove('table-mode'));
+    draw();
+  </script>
+</body>
+</html>
