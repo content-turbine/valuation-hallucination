@@ -38,16 +38,20 @@
     .description { margin:13px 0; font-size:clamp(.76rem,2.7vw,.92rem); line-height:1.35; }
     .effect { margin-top:auto; padding-top:13px; border-top:3px solid var(--ink); font:500 clamp(.61rem,2.25vw,.75rem)/1.45 "DM Mono",monospace; text-transform:uppercase; }
     .stamp { position:absolute; right:-10px; top:45%; padding:7px 9px; color:white; background:var(--accent); border:2px solid var(--ink); transform:rotate(7deg); font-size:clamp(.48rem,1.8vw,.59rem); }
-    .controls { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:9px; border-top:1px solid var(--line); }
+    .controls { display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; align-items:center; gap:8px; border-top:1px solid var(--line); }
     .home { min-height:38px; display:inline-flex; align-items:center; border:1px solid var(--line); padding:0 10px; color:rgba(255,255,255,.72); text-decoration:none; font:500 .57rem "DM Mono",monospace; text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
     .home:hover,.home:focus-visible { color:var(--ink); background:white; border-color:white; outline:none; }
     .caption { color:rgba(255,255,255,.48); font-size:.52rem; line-height:1.35; overflow:hidden; }
     .caption a { display:block; max-width:100%; overflow:hidden; color:rgba(255,255,255,.72); text-overflow:ellipsis; white-space:nowrap; text-decoration:none; }
+    .caption a[hidden] { display:none; }
     .caption a:hover,.caption a:focus-visible { color:var(--acid); outline:none; }
+    .fullscreen { width:38px; min-height:38px; display:grid; place-items:center; border:1px solid var(--line); padding:0; cursor:pointer; background:transparent; color:rgba(255,255,255,.72); font-size:1rem; line-height:1; }
+    .fullscreen:hover,.fullscreen:focus-visible { color:var(--ink); background:white; border-color:white; outline:none; }
+    .fullscreen[hidden] { display:none; }
     .draw { min-height:38px; border:1px solid var(--acid); padding:0 12px; cursor:pointer; background:transparent; color:var(--acid); font:500 .57rem "DM Mono",monospace; text-transform:uppercase; letter-spacing:.06em; }
     .draw:hover,.draw:focus-visible { color:var(--ink); background:var(--acid); outline:none; }
     .draw:disabled { opacity:.55; cursor:wait; }
-    @media (max-height:660px) { .screen{grid-template-rows:50px minmax(0,1fr) 46px}.logo{width:150px}main{padding:7px 0}.card{border-radius:16px}.caption{font-size:.48rem}.home,.draw{min-height:34px;padding-inline:9px} }
+    @media (max-height:660px) { .screen{grid-template-rows:50px minmax(0,1fr) 46px}.logo{width:150px}main{padding:7px 0}.card{border-radius:16px}.caption{font-size:.48rem}.home,.draw{min-height:34px;padding-inline:9px}.fullscreen{width:34px;min-height:34px} }
     @media (min-width:760px) { .screen{padding-inline:22px}.card{transform:rotate(-.5deg)} }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important} }
   </style>
@@ -73,6 +77,7 @@
     <div class="controls">
       <a class="home" href="/" aria-label="Return to the Valuation Hallucination homepage">← Home</a>
       <span class="caption mono"><a id="sourceLink" href="#" target="_blank" rel="noreferrer">Loading market source…</a>Place phone face-up at the center of the table</span>
+      <button class="fullscreen" id="fullscreenButton" type="button" aria-label="Enter fullscreen" title="Enter fullscreen">⛶</button>
       <button class="draw" id="drawButton" type="button">Refresh ↻</button>
     </div>
   </div>
@@ -80,6 +85,7 @@
     const card = document.getElementById('marketCard');
     const deck = document.querySelector('.deck');
     const drawButton = document.getElementById('drawButton');
+    const fullscreenButton = document.getElementById('fullscreenButton');
     const fields = ['signal','title','description','effect','target'];
 
     function render(data, payload) {
@@ -95,29 +101,43 @@
       source.hidden = !data.source_url;
     }
 
-    async function draw() {
-      card.classList.add('loading');
+    async function draw({ animate = true } = {}) {
+      if (animate) card.classList.add('loading');
       deck.setAttribute('aria-busy','true');
       drawButton.disabled = true;
       try {
         const response = await fetch('/api/market', { cache:'no-store' });
         if (!response.ok) throw new Error('Market feed unavailable');
         const result = await response.json();
-        setTimeout(() => render(result.card, result), 150);
+        if (animate) setTimeout(() => render(result.card, result), 150);
+        else render(result.card, result);
       } catch (error) {
         document.getElementById('description').textContent = 'The market feed glitched. Try drawing again.';
       } finally {
         setTimeout(() => {
-          card.classList.remove('loading');
+          if (animate) card.classList.remove('loading');
           deck.setAttribute('aria-busy','false');
           drawButton.disabled = false;
-        }, 250);
+        }, animate ? 250 : 0);
       }
     }
 
-    drawButton.addEventListener('click', draw);
-    draw();
-    window.setInterval(draw, 60_000);
+    drawButton.addEventListener('click', () => draw({ animate:true }));
+    if (!document.fullscreenEnabled) fullscreenButton.hidden = true;
+    fullscreenButton.addEventListener('click', async () => {
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else await document.documentElement.requestFullscreen();
+      } catch (_) {}
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const active = Boolean(document.fullscreenElement);
+      fullscreenButton.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen');
+      fullscreenButton.title = active ? 'Exit fullscreen' : 'Enter fullscreen';
+      fullscreenButton.textContent = active ? '×' : '⛶';
+    });
+    draw({ animate:false });
+    window.setInterval(() => draw({ animate:false }), 60_000);
   </script>
 </body>
 </html>
