@@ -38,14 +38,16 @@
     .description { margin:13px 0; font-size:clamp(.76rem,2.7vw,.92rem); line-height:1.35; }
     .effect { margin-top:auto; padding-top:13px; border-top:3px solid var(--ink); font:500 clamp(.61rem,2.25vw,.75rem)/1.45 "DM Mono",monospace; text-transform:uppercase; }
     .stamp { position:absolute; right:-10px; top:45%; padding:7px 9px; color:white; background:var(--accent); border:2px solid var(--ink); transform:rotate(7deg); font-size:clamp(.48rem,1.8vw,.59rem); }
-    .controls { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; border-top:1px solid var(--line); }
+    .controls { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:9px; border-top:1px solid var(--line); }
+    .home { min-height:38px; display:inline-flex; align-items:center; border:1px solid var(--line); padding:0 10px; color:rgba(255,255,255,.72); text-decoration:none; font:500 .57rem "DM Mono",monospace; text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+    .home:hover,.home:focus-visible { color:var(--ink); background:white; border-color:white; outline:none; }
     .caption { color:rgba(255,255,255,.48); font-size:.52rem; line-height:1.35; overflow:hidden; }
     .caption a { display:block; max-width:100%; overflow:hidden; color:rgba(255,255,255,.72); text-overflow:ellipsis; white-space:nowrap; text-decoration:none; }
     .caption a:hover,.caption a:focus-visible { color:var(--acid); outline:none; }
     .draw { min-height:38px; border:1px solid var(--acid); padding:0 12px; cursor:pointer; background:transparent; color:var(--acid); font:500 .57rem "DM Mono",monospace; text-transform:uppercase; letter-spacing:.06em; }
     .draw:hover,.draw:focus-visible { color:var(--ink); background:var(--acid); outline:none; }
     .draw:disabled { opacity:.55; cursor:wait; }
-    @media (max-height:660px) { .screen{grid-template-rows:50px minmax(0,1fr) 46px}.logo{width:150px}main{padding:7px 0}.card{border-radius:16px}.caption{font-size:.48rem}.draw{min-height:34px} }
+    @media (max-height:660px) { .screen{grid-template-rows:50px minmax(0,1fr) 46px}.logo{width:150px}main{padding:7px 0}.card{border-radius:16px}.caption{font-size:.48rem}.home,.draw{min-height:34px;padding-inline:9px} }
     @media (min-width:760px) { .screen{padding-inline:22px}.card{transform:rotate(-.5deg)} }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important} }
   </style>
@@ -69,6 +71,7 @@
       </section>
     </main>
     <div class="controls">
+      <a class="home" href="/" aria-label="Return to the Valuation Hallucination homepage">← Home</a>
       <span class="caption mono"><a id="sourceLink" href="#" target="_blank" rel="noreferrer">Loading market source…</a>Place phone face-up at the center of the table</span>
       <button class="draw" id="drawButton" type="button">Refresh ↻</button>
     </div>
