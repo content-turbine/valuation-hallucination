@@ -115,8 +115,8 @@
       <section aria-labelledby="headline">
         <div class="eyebrow mono reveal">A satirical startup card game // coming soon</div>
         <h1 id="headline" class="reveal">The <span>$1B race</span> starts soon.</h1>
-        <p class="lead reveal"><strong>Valuation Hallucination is a fast, satirical card game</strong> where you build an AI startup, hire agents, survive market chaos and race to a $1B valuation—while hiding a side hustle.</p>
-        <div class="founders-offer reveal"><b class="mono">Join the Founders’ Round</b><span>Claim your Founder ID, vote on a real card in the finished game, and reserve the Founder Edition bonus if you back within 48 hours of launch.</span></div>
+        <p class="lead reveal"><strong>Valuation Hallucination is a fast, satirical card game</strong> where you build an AI startup, hire agents, survive market chaos and race to a $1B valuation, all while hiding a side hustle. Nothing suspicious here. ;)</p>
+        <div class="founders-offer reveal"><b class="mono">Join the Founders’ Round</b><span>Get a Founder ID, climb the valuation leaderboard and help choose a card for the finished game.</span></div>
         <form class="waitlist reveal" id="waitlistForm">
           <label class="honeypot" for="website">Leave this field empty</label>
           <input class="honeypot" id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
@@ -124,8 +124,8 @@
           <input id="email" name="email" type="email" required autocomplete="email" placeholder="founder@definitelyreal.ai" />
           <button type="submit">Claim my Founder ID ↗</button>
         </form>
-        <label class="consent reveal"><input id="termsConsent" type="checkbox" required form="waitlistForm" /> <span>I agree to the <a href="/terms" target="_blank">Founders’ Round Terms</a> and confirm I’m 16+ or have permission from a parent or guardian.</span></label>
-        <label class="consent reveal"><input id="marketingConsent" type="checkbox" required form="waitlistForm" /> <span>Send me the community vote, Kickstarter launch and game updates. Unsubscribe anytime. See our <a href="/privacy" target="_blank">Privacy Notice</a>.</span></label>
+        <label class="consent reveal"><input id="emailConsent" type="checkbox" required form="waitlistForm" /> <span>Email me the Kickstarter launch and game updates. Unsubscribe anytime.</span></label>
+        <p class="consent reveal">By joining, you confirm you’re 16+ or have guardian permission and agree to the <a href="/terms" target="_blank">Terms</a> and <a href="/privacy" target="_blank">Privacy Notice</a>.</p>
         <p class="form-status" id="formStatus" aria-live="polite">One email gets you into the game before the game.</p>
         <section class="signup-result" id="signupResult" aria-live="polite" hidden>
           <p class="signup-kicker mono" id="signupKicker">Shell company incorporated // cap table updated</p>
@@ -175,14 +175,75 @@
     <span class="made">Made by techies, for techies, with <b>♥</b> &amp; caffeine.</span>
   </footer>
   <script>
+    const query = new URLSearchParams(window.location.search);
+    const id = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    const getStored = (key, fallback) => {
+      try { return localStorage.getItem(key) || fallback; } catch (_) { return fallback; }
+    };
+    const setStored = (key, value) => {
+      try { localStorage.setItem(key, value); } catch (_) {}
+    };
+    const visitorId = getStored('vh_visitor_id', id());
+    setStored('vh_visitor_id', visitorId);
+    const sessionId = sessionStorage.getItem('vh_session_id') || id();
+    sessionStorage.setItem('vh_session_id', sessionId);
+    const firstTouchKey = 'vh_first_touch';
+    let firstTouch;
+    try { firstTouch = JSON.parse(localStorage.getItem(firstTouchKey) || 'null'); } catch (_) { firstTouch = null; }
+    if (!firstTouch) {
+      firstTouch = {
+        utm_source: query.get('utm_source') || (query.get('ref') ? 'referral' : 'direct'),
+        utm_medium: query.get('utm_medium') || '',
+        utm_campaign: query.get('utm_campaign') || '',
+        utm_content: query.get('utm_content') || '',
+        subreddit: query.get('subreddit') || '',
+        reddit_post_id: query.get('reddit_post_id') || '',
+        referrer_url: document.referrer || '',
+        landing_path: `${location.pathname}${location.search}`
+      };
+      try { localStorage.setItem(firstTouchKey, JSON.stringify(firstTouch)); } catch (_) {}
+    }
+    const campaignContext = {
+      visitor_id: visitorId,
+      session_id: sessionId,
+      utm_source: query.get('utm_source') || firstTouch.utm_source || 'direct',
+      utm_medium: query.get('utm_medium') || firstTouch.utm_medium || '',
+      utm_campaign: query.get('utm_campaign') || firstTouch.utm_campaign || '',
+      utm_content: query.get('utm_content') || firstTouch.utm_content || '',
+      subreddit: query.get('subreddit') || firstTouch.subreddit || '',
+      reddit_post_id: query.get('reddit_post_id') || firstTouch.reddit_post_id || '',
+      referrer_url: firstTouch.referrer_url || '',
+      landing_path: firstTouch.landing_path || location.pathname
+    };
+    const track = (eventName, properties = {}) => {
+      const payload = JSON.stringify({ event_name: eventName, ...campaignContext, properties });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/events', new Blob([payload], { type: 'application/json' }));
+      } else {
+        fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
+      }
+    };
+    track('page_view');
+
     const waitlistForm = document.getElementById('waitlistForm');
     const formStatus = document.getElementById('formStatus');
     const signupResult = document.getElementById('signupResult');
-    const referralCode = new URLSearchParams(window.location.search).get('ref');
+    const referralCode = query.get('ref');
+    let started = false;
+    waitlistForm.addEventListener('focusin', () => {
+      if (!started) { started = true; track('waitlist_start'); }
+    });
     waitlistForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const button = waitlistForm.querySelector('button');
       const email = document.getElementById('email');
+      const emailConsent = document.getElementById('emailConsent');
+      if (!emailConsent.checked) {
+        formStatus.classList.add('error');
+        formStatus.textContent = 'Tick the email box to join the Founders’ Round.';
+        emailConsent.focus();
+        return;
+      }
       button.disabled = true;
       button.textContent = 'Joining…';
       formStatus.classList.remove('error');
@@ -195,9 +256,10 @@
             website: document.getElementById('website').value,
             source: 'coming-soon',
             referred_by: referralCode,
-            terms_accepted: document.getElementById('termsConsent').checked,
-            age_confirmed: document.getElementById('termsConsent').checked,
-            marketing_consent: document.getElementById('marketingConsent').checked
+            ...campaignContext,
+            terms_accepted: true,
+            age_confirmed: true,
+            marketing_consent: emailConsent.checked
           })
         });
         const result = await response.json();
@@ -224,6 +286,7 @@
     });
     document.getElementById('copyReferral').addEventListener('click', async (event) => {
       const field = document.getElementById('referralLink');
+      track('referral_link_copy', { referral_code: field.value.split('ref=')[1] || '' });
       try {
         await navigator.clipboard.writeText(field.value);
         event.currentTarget.textContent = 'Copied // valuation pending';
