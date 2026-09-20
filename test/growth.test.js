@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { attributionFrom, safeEventName, safeUrl } from "../lib/growth.js";
-import { nextPostRecommendation, redditQueue, scheduledPostRecommendation } from "../lib/reddit-content.js";
+import { nextPostRecommendation, opportunityFromSource, scheduledPostRecommendation } from "../lib/reddit-content.js";
+import { parseRedditFeed } from "../lib/reddit-scan.js";
 import eventsHandler from "../api/events.js";
 import growthHandler from "../api/admin/growth.js";
 import waitlistHandler from "../api/waitlist.js";
@@ -46,21 +47,41 @@ test("rejects non-http URLs", () => {
   assert.equal(safeUrl("https://www.reddit.com/r/SideProject"), "https://www.reddit.com/r/SideProject");
 });
 
-test("content queue contains distinct community-native stages", () => {
-  assert.ok(redditQueue.length >= 6);
-  assert.ok(redditQueue.some((item) => item.linkMode === "none"));
-  assert.ok(redditQueue.some((item) => item.linkMode === "tracked"));
+test("builds an opportunity from a live Reddit source instead of a fixed plan", () => {
+  const result = opportunityFromSource({
+    post_id: "reddit-abc",
+    subreddit: "BoardgameDesign",
+    source_url: "https://www.reddit.com/r/BoardgameDesign/comments/abc/example/",
+    source_title: "How do you balance take-that mechanics?",
+    score: 88
+  });
+  assert.equal(result.id, "reddit-abc");
+  assert.equal(result.linkMode, "none");
+  assert.match(result.angle, /take-that mechanics/);
+});
+
+test("parses current Reddit RSS entries", () => {
+  const xml = `<?xml version="1.0"?><feed><entry><content type="html">&lt;p&gt;Prototype feedback&lt;/p&gt;</content><id>t3_abc123</id><link href="https://www.reddit.com/r/SideProject/comments/abc123/example/"/><published>2026-09-20T01:18:55+00:00</published><title>Testing an AI card game</title></entry></feed>`;
+  const [result] = parseRedditFeed(xml, "SideProject");
+  assert.equal(result.post_id, "reddit-abc123");
+  assert.equal(result.source_title, "Testing an AI card game");
+  assert.match(result.source_excerpt, /Prototype feedback/);
 });
 
 test("next post recommendation uses measured performance", () => {
-  const result = nextPostRecommendation([{ subreddit: "SideProject", content: "origin", signups: 4 }]);
+  const queue = [{ id: "reddit-abc", subreddit: "SideProject", status: "planned", title: "Live topic" }];
+  const result = nextPostRecommendation([{ subreddit: "SideProject", content: "origin", signups: 4 }], queue);
   assert.match(result.reason, /SideProject/);
   assert.ok(result.title);
 });
 
 test("scheduled recommendation is deterministic for a date", () => {
   const date = new Date("2026-09-19T10:00:00Z");
-  assert.deepEqual(scheduledPostRecommendation([], date), scheduledPostRecommendation([], date));
+  const queue = [
+    { id: "one", subreddit: "SideProject", status: "planned" },
+    { id: "two", subreddit: "startups", status: "draft" }
+  ];
+  assert.deepEqual(scheduledPostRecommendation([], date, queue), scheduledPostRecommendation([], date, queue));
 });
 
 test("client event endpoint rejects server-only conversion events", async () => {
