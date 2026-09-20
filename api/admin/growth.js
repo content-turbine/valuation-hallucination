@@ -1,12 +1,98 @@
-import { authorized, growthDatabase } from "../../lib/growth.js";
-import { nextPostRecommendation, redditSubreddits } from "../../lib/reddit-content.js";
-import { loadRedditQueue, syncRedditOpportunities } from "../../lib/reddit-scan.js";
+import { authorized, growthDatabase, safeUrl } from "../../lib/growth.js";
+import { nextPostRecommendation, normalizedPostStatus, redditSubreddits } from "../../lib/reddit-content.js";
+import { generateRedditDraft } from "../../lib/reddit-drafts.js";
+import { loadRedditQueue, opportunityRowToPost, syncRedditOpportunities } from "../../lib/reddit-scan.js";
+
+const allowedStatuses = new Set(["planned", "draft", "ready", "posted", "skipped", "blocked"]);
+
+function requestBody(req) {
+  if (typeof req.body !== "string") return req.body || {};
+  return JSON.parse(req.body || "{}");
+}
+
+async function scanAction(db, res) {
+  const scan = await syncRedditOpportunities(db);
+  if (!scan.items.length) {
+    return res.status(502).json({
+      detail: "Reddit returned no usable feed items.",
+      communities: scan.communities,
+      errors: scan.errors
+    });
+  }
+  return res.status(200).json({
+    ok: true,
+    scanned_at: scan.scanned_at,
+    communities: scan.communities,
+    opportunities: scan.items.length,
+    errors: scan.errors
+  });
+}
+
+async function draftAction(db, body, res) {
+  const opportunity = await db.query(
+    `SELECT o.*, w.status, w.reddit_url, w.draft_title, w.draft_body,
+       w.first_comment, w.llm_model, w.posted_at, w.updated_at
+     FROM valuation_hallucination.reddit_opportunities o
+     LEFT JOIN valuation_hallucination.reddit_post_workflow w ON w.post_id = o.post_id
+     WHERE o.post_id = $1`,
+    [String(body.post_id || "").slice(0, 120)]
+  );
+  if (!opportunity.rowCount) return res.status(404).json({ detail: "Reddit opportunity was not found." });
+  const post = opportunityRowToPost(opportunity.rows[0]);
+  const draft = await generateRedditDraft(post, body.instructions);
+  await db.query(
+    `INSERT INTO valuation_hallucination.reddit_post_workflow
+      (post_id, status, draft_title, draft_body, first_comment, llm_model, updated_at)
+     VALUES ($1, 'draft', $2, $3, $4, $5, NOW())
+     ON CONFLICT (post_id) DO UPDATE SET
+       status = CASE WHEN valuation_hallucination.reddit_post_workflow.status = 'posted'
+         THEN 'posted' ELSE 'draft' END,
+       draft_title = EXCLUDED.draft_title,
+       draft_body = EXCLUDED.draft_body,
+       first_comment = EXCLUDED.first_comment,
+       llm_model = EXCLUDED.llm_model,
+       updated_at = NOW()`,
+    [post.id, draft.title, draft.body, draft.first_comment || null, draft.model]
+  );
+  return res.status(200).json({ post_id: post.id, ...draft });
+}
+
+async function statusAction(db, body, res) {
+  const postId = String(body.post_id || "").slice(0, 120);
+  const status = normalizedPostStatus(body.status);
+  if (!allowedStatuses.has(status)) return res.status(400).json({ detail: "Invalid post status." });
+  const redditUrl = body.reddit_url ? safeUrl(body.reddit_url, 800) : "";
+  if (redditUrl && !/^https:\/\/(?:www\.|old\.)?reddit\.com\//i.test(redditUrl)) {
+    return res.status(400).json({ detail: "Use the published Reddit post URL." });
+  }
+  const exists = await db.query(
+    `SELECT 1 FROM valuation_hallucination.reddit_opportunities WHERE post_id = $1`,
+    [postId]
+  );
+  if (!exists.rowCount) return res.status(404).json({ detail: "Reddit opportunity was not found." });
+  const result = await db.query(
+    `INSERT INTO valuation_hallucination.reddit_post_workflow
+      (post_id, status, reddit_url, posted_at, updated_at)
+     VALUES ($1, $2, $3, CASE WHEN $2 = 'posted' THEN NOW() ELSE NULL END, NOW())
+     ON CONFLICT (post_id) DO UPDATE SET
+       status = EXCLUDED.status,
+       reddit_url = COALESCE(NULLIF(EXCLUDED.reddit_url, ''), valuation_hallucination.reddit_post_workflow.reddit_url),
+       posted_at = CASE
+         WHEN EXCLUDED.status = 'posted' THEN COALESCE(valuation_hallucination.reddit_post_workflow.posted_at, NOW())
+         ELSE NULL
+       END,
+       updated_at = NOW()
+     RETURNING post_id, status, reddit_url, posted_at, updated_at`,
+    [postId, status, redditUrl || null]
+  );
+  return res.status(200).json(result.rows[0]);
+}
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Content-Type-Options", "nosniff");
-  if (req.method !== "GET") {
-    res.setHeader("Allow", "GET");
+  if (!["GET", "POST", "PATCH"].includes(req.method)) {
+    res.setHeader("Allow", "GET, POST, PATCH");
     return res.status(405).json({ detail: "Method not allowed." });
   }
   if (!authorized(req)) return res.status(401).json({ detail: "Unauthorized." });
@@ -14,6 +100,18 @@ export default async function handler(req, res) {
   if (!db) return res.status(503).json({ detail: "Growth database is not configured." });
 
   try {
+    if (req.method !== "GET") {
+      let body;
+      try {
+        body = requestBody(req);
+      } catch {
+        return res.status(400).json({ detail: "Invalid request." });
+      }
+      if (req.method === "POST" && body.action === "scan") return await scanAction(db, res);
+      if (req.method === "POST" && body.action === "draft") return await draftAction(db, body, res);
+      if (req.method === "PATCH" && body.action === "status") return await statusAction(db, body, res);
+      return res.status(400).json({ detail: "Unknown growth action." });
+    }
     let scanSummary = null;
     const scanState = await db.query(
       `SELECT MAX(last_seen_at) AS last_scanned_at, COUNT(*)::int AS opportunities

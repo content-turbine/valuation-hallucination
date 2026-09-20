@@ -21,7 +21,7 @@ This is a static launch site with small, isolated Vercel Functions. No build com
 - `/api/events` — first-party conversion events (no third-party analytics SDK).
 - `/api/admin/growth` — protected aggregate growth reporting.
 - `/api/admin/leads` — protected lead export.
-- `/api/admin/reddit-scan` — protected manual refresh of current Reddit opportunities.
+- `/api/admin/growth` also accepts protected scan, drafting, and status actions so the project stays under Vercel Hobby’s function limit.
 - `/api/cron/reddit-digest` — daily Slack draft recommendation for human review.
 
 ## Waitlist storage

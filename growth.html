@@ -85,7 +85,7 @@
       });
       document.querySelectorAll('.generate').forEach((button)=>button.addEventListener('click',async()=>{
         button.disabled=true; button.textContent='Drafting…';
-        try{await api('/api/admin/reddit-draft',{method:'POST',body:JSON.stringify({post_id:button.dataset.id})});await load();}catch(e){alert(e.message);button.disabled=false;button.textContent='Generate draft';}
+        try{await api('/api/admin/growth',{method:'POST',body:JSON.stringify({action:'draft',post_id:button.dataset.id})});await load();}catch(e){alert(e.message);button.disabled=false;button.textContent='Generate draft';}
       }));
       document.querySelectorAll('.copy-title').forEach((button)=>button.addEventListener('click',async()=>{await navigator.clipboard.writeText(button.closest('.queue-card').querySelector('.draft-title').value);button.textContent='Copied';}));
       document.querySelectorAll('.copy-body').forEach((button)=>button.addEventListener('click',async()=>{await navigator.clipboard.writeText(button.closest('.queue-card').querySelector('.draft-body').value);button.textContent='Copied';}));
@@ -95,7 +95,7 @@
       }));
       document.querySelectorAll('.save-post').forEach((button)=>button.addEventListener('click',async()=>{
         const card=button.closest('.queue-card');button.disabled=true;
-        try{await api('/api/admin/reddit-posts',{method:'PATCH',body:JSON.stringify({post_id:button.dataset.id,status:card.querySelector('.post-status').value,reddit_url:card.querySelector('.reddit-url').value.trim()})});await load();}catch(e){alert(e.message);button.disabled=false;}
+        try{await api('/api/admin/growth',{method:'PATCH',body:JSON.stringify({action:'status',post_id:button.dataset.id,status:card.querySelector('.post-status').value,reddit_url:card.querySelector('.reddit-url').value.trim()})});await load();}catch(e){alert(e.message);button.disabled=false;}
       }));
     }
     async function load() {
@@ -115,7 +115,7 @@
     }
     $('accessForm').addEventListener('submit',async(e)=>{e.preventDefault();adminToken=$('token').value.trim();sessionStorage.setItem('vh_growth_token',adminToken);try{await load();}catch(error){$('gateError').textContent=error.message;}});
     $('refresh').addEventListener('click',()=>load().catch((e)=>alert(e.message)));
-    $('scanReddit').addEventListener('click',async()=>{const button=$('scanReddit');button.disabled=true;button.textContent='Scanning…';try{await api('/api/admin/reddit-scan',{method:'POST'});await load();}catch(e){alert(e.message);}finally{button.disabled=false;button.textContent='Scan Reddit now';}});
+    $('scanReddit').addEventListener('click',async()=>{const button=$('scanReddit');button.disabled=true;button.textContent='Scanning…';try{await api('/api/admin/growth',{method:'POST',body:JSON.stringify({action:'scan'})});await load();}catch(e){alert(e.message);}finally{button.disabled=false;button.textContent='Scan Reddit now';}});
     $('download').addEventListener('click',async()=>{try{const response=await api('/api/admin/leads');const blob=await response.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`valuation-hallucination-leads-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);}catch(e){alert(e.message);}});
     if(adminToken){load().catch(()=>{sessionStorage.removeItem('vh_growth_token');adminToken='';});}
   </script>
