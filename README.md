@@ -58,7 +58,7 @@ The daily Vercel cron sends a proposed post brief to Slack at 14:00 UTC. It neve
 
 ### Community card reveal
 
-`/choose` reads the public reveal state from `/api/card-vote`. The three default reveals are September 22, 24 and 26, 2026 at noon Eastern, with voting closing October 3 at 11:59 p.m. Eastern. Override the schedule and card copy in Vercel with `CARD_VOTE_1_*`, `CARD_VOTE_2_*`, `CARD_VOTE_3_*`, and `CARD_VOTE_CLOSES_AT` environment variables. Votes are stored in `valuation_hallucination.card_votes`; one ballot is allowed per Founder ID, and founders with three or more qualified referrals receive a vote weight of two.
+`/choose` reads the public reveal state from `/api/card-vote`. The three default reveals are September 28, October 15 and October 30, 2026 at noon Eastern, with voting closing November 6 at 11:59 p.m. Eastern. Override the schedule and card copy in Vercel with `CARD_VOTE_1_*`, `CARD_VOTE_2_*`, `CARD_VOTE_3_*`, and `CARD_VOTE_CLOSES_AT` environment variables. Votes are stored in `valuation_hallucination.card_votes`; one ballot is allowed per Founder ID, and founders with three or more qualified referrals receive a vote weight of two.
 
 Terms acceptance is versioned as `founders-round-2026-09-19`. The production contact alias referenced by the legal pages is `hello@valuationhallucination.com`; keep that mailbox or alias active before collecting signups under these terms.
 
