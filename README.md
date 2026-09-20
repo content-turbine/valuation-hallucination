@@ -66,17 +66,19 @@ Terms acceptance is versioned as `founders-round-2026-09-19`. The production con
 
 The market engine is a contained feature of the site, not the site architecture. It uses the same Postgres database connection but stores data only in `valuation_hallucination.market_event_runs`.
 
-The service checks the GDELT news feed for English-language technology, startup, venture-capital, and market headlines. Unsafe topics are excluded. Keyword scoring maps suitable headlines to the ten balanced Market Event effects from the game design. Up to three candidates are stored for six hours; candidate 1 is selected automatically unless a human overrides it in Slack.
+The service combines Google News RSS, GDELT, and Hacker News for English-language technology, startup, venture-capital, and market headlines. One failed source does not block the daily card. Unsafe topics are excluded. Keyword scoring maps suitable headlines to the ten balanced Market Event effects from the game design.
+
+Vercel Hobby runs two daily UTC triggers to cover daylight-saving changes. The handler generates at most one row per Eastern calendar day, only after 9:30 a.m. ET. Hobby scheduling can be delayed by up to 59 minutes, so the daily Slack post normally arrives between 9:30 and 10:29 a.m. ET. Candidate 1 is selected automatically; replying in its Slack thread with `pick 1`, `pick 2`, or `pick 3` changes the live `/market` card for the rest of the day.
 
 Required production variables:
 
 - `DATABASE_URL` or `POSTGRES_URL`
-- `MARKET_ADMIN_TOKEN` for `POST /api/market/generate`
+- `MARKET_ADMIN_TOKEN` for an optional manual `POST /api/market/generate`
 - `SLACK_BOT_TOKEN` with `chat:write`
 - `SLACK_SIGNING_SECRET`
 - `VH_SLACK_CHANNEL_ID`
 - `GROWTH_ADMIN_TOKEN` (long random token for `/growth` reporting)
-- `CRON_SECRET` (used by Vercel Cron to authenticate the daily digest)
+- `CRON_SECRET` (used by Vercel Cron to authenticate the daily digest and Market Event jobs)
 - `PUBLIC_SITE_URL=https://www.valuationhallucination.com`
 
 Optional growth alert variable:
