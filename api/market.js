@@ -1,5 +1,4 @@
-import { waitUntil } from "@vercel/functions";
-import { getLatestRun, publicPayload, refreshInBackground } from "../lib/market-events.js";
+import { getLatestRun, publicPayload } from "../lib/market-events.js";
 
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") {
@@ -14,11 +13,9 @@ export default async function handler(req, res) {
   }
 
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+  res.setHeader("Cache-Control", "private, no-store, max-age=0");
   try {
     const latest = await getLatestRun();
-    const refresh = refreshInBackground(latest);
-    if (refresh) waitUntil(refresh);
     return res.status(200).json(publicPayload(latest));
   } catch (error) {
     console.error("market_current_error", error.message);

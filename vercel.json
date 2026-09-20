@@ -6,6 +6,14 @@
     {
       "path": "/api/cron/reddit-digest",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/market-early",
+      "schedule": "30 13 * * *"
+    },
+    {
+      "path": "/api/cron/market-late",
+      "schedule": "30 14 * * *"
     }
   ],
   "headers": [
