@@ -3,7 +3,7 @@ import { nextPostRecommendation, normalizedPostStatus, redditSubreddits } from "
 import { generateRedditDraft } from "../../lib/reddit-drafts.js";
 import { loadRedditQueue, opportunityRowToPost, syncRedditOpportunities } from "../../lib/reddit-scan.js";
 
-const allowedStatuses = new Set(["planned", "draft", "ready", "posted", "skipped", "blocked"]);
+const allowedStatuses = new Set(["planned", "draft", "ready", "posted", "skipped", "blocked", "archived"]);
 
 function requestBody(req) {
   if (typeof req.body !== "string") return req.body || {};
@@ -16,6 +16,7 @@ async function scanAction(db, res) {
     return res.status(502).json({
       detail: "Reddit returned no usable feed items.",
       communities: scan.communities,
+      screened_out: scan.screened_out,
       errors: scan.errors
     });
   }
@@ -24,6 +25,7 @@ async function scanAction(db, res) {
     scanned_at: scan.scanned_at,
     communities: scan.communities,
     opportunities: scan.items.length,
+    screened_out: scan.screened_out,
     errors: scan.errors
   });
 }
@@ -59,8 +61,9 @@ async function draftAction(db, body, res) {
 
 async function statusAction(db, body, res) {
   const postId = String(body.post_id || "").slice(0, 120);
-  const status = normalizedPostStatus(body.status);
-  if (!allowedStatuses.has(status)) return res.status(400).json({ detail: "Invalid post status." });
+  const requestedStatus = String(body.status || "").toLowerCase();
+  if (!allowedStatuses.has(requestedStatus)) return res.status(400).json({ detail: "Invalid post status." });
+  const status = normalizedPostStatus(requestedStatus);
   const redditUrl = body.reddit_url ? safeUrl(body.reddit_url, 800) : "";
   if (redditUrl && !/^https:\/\/(?:www\.|old\.)?reddit\.com\//i.test(redditUrl)) {
     return res.status(400).json({ detail: "Use the published Reddit post URL." });
@@ -112,9 +115,11 @@ export default async function handler(req, res) {
       if (req.method === "PATCH" && body.action === "status") return await statusAction(db, body, res);
       return res.status(400).json({ detail: "Unknown growth action." });
     }
+    const includeArchived = String(req.query?.include_archived || "").toLowerCase() === "true";
     let scanSummary = null;
     const scanState = await db.query(
-      `SELECT MAX(last_seen_at) AS last_scanned_at, COUNT(*)::int AS opportunities
+      `SELECT MAX(last_seen_at) FILTER (WHERE context_relevant = TRUE) AS last_scanned_at,
+         COUNT(*) FILTER (WHERE context_relevant = TRUE)::int AS opportunities
        FROM valuation_hallucination.reddit_opportunities`
     );
     const lastScan = scanState.rows[0]?.last_scanned_at;
@@ -124,6 +129,7 @@ export default async function handler(req, res) {
         scanSummary = {
           last_scanned_at: scan.scanned_at,
           opportunities: scan.items.length,
+          screened_out: scan.screened_out,
           communities: scan.communities,
           errors: scan.errors
         };
@@ -195,7 +201,7 @@ export default async function handler(req, res) {
         FROM valuation_hallucination.waitlist
         ORDER BY created_at DESC LIMIT 25
       `),
-      loadRedditQueue(db)
+      loadRedditQueue(db, 60, includeArchived)
     ]);
 
     const funnelMap = Object.fromEntries(funnel.rows.map((row) => [row.event_name, row.count]));
@@ -207,6 +213,7 @@ export default async function handler(req, res) {
       last_scanned_at: lastScan,
       opportunities: scanState.rows[0]?.opportunities || queue.length,
       communities: redditSubreddits(),
+      screened_out: 0,
       errors: []
     };
     return res.status(200).json({

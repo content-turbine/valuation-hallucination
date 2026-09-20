@@ -26,6 +26,10 @@ CREATE TABLE IF NOT EXISTS valuation_hallucination.reddit_opportunities (
   angle TEXT NOT NULL,
   cta TEXT NOT NULL,
   link_mode TEXT NOT NULL DEFAULT 'none',
+  tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+  context_score INTEGER NOT NULL DEFAULT 0,
+  relevance_reasons JSONB NOT NULL DEFAULT '[]'::jsonb,
+  context_relevant BOOLEAN NOT NULL DEFAULT FALSE,
   discovered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
