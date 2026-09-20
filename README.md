@@ -17,10 +17,11 @@ This is a static launch site with small, isolated Vercel Functions. No build com
 - `/api/market/generate` — protected manual generation of three candidates.
 - `/api/slack/events` — signed Slack reply handler for `pick 1`, `pick 2`, or `pick 3`.
 - `/api/waitlist` — private waitlist capture.
-- `/growth` — private, token-gated Reddit acquisition dashboard and tracked-link builder.
+- `/growth` — private, token-gated acquisition dashboard with live Reddit scanning, drafting, publishing status, founder emails, and attribution.
 - `/api/events` — first-party conversion events (no third-party analytics SDK).
 - `/api/admin/growth` — protected aggregate growth reporting.
 - `/api/admin/leads` — protected lead export.
+- `/api/admin/reddit-scan` — protected manual refresh of current Reddit opportunities.
 - `/api/cron/reddit-digest` — daily Slack draft recommendation for human review.
 
 ## Waitlist storage
@@ -40,13 +41,15 @@ The public page preserves first-touch attribution in the visitor's browser and r
 Open `/growth`, enter `GROWTH_ADMIN_TOKEN`, and use the dashboard to:
 
 - compare visits, form starts, founders, conversion rate, and qualified referrals by Reddit post;
-- create consistent tracked Reddit links;
-- see referral leaders without exposing email addresses in the dashboard;
+- copy a measured link attached to each live Reddit opportunity;
+- see founder emails alongside their attribution source;
 - download the complete consented lead list as a protected CSV;
-- work through the community-specific Reddit content queue; and
+- scan selected communities and work through a database-backed publishing queue; and
 - receive a next-post recommendation based on measured conversions.
 
-The daily Vercel cron sends a proposed post brief to Slack at 14:00 UTC. It never publishes to Reddit. A human must review the subreddit rules, approve the wording, and post through an authenticated Reddit session.
+The daily Vercel cron reads current public Reddit RSS feeds, updates the ranked opportunity queue, creates a draft, and sends it to Slack at 14:00 UTC. The former `growth/reddit-plan.json` file is not used. It never publishes to Reddit. A human must open the source discussion, review subreddit rules, approve the wording, and post through an authenticated Reddit session.
+
+Set `PERPLEXITY_API_KEY` to enable copy-ready drafting. The default `PERPLEXITY_MODEL` is `perplexity/glm-5.3-flash`; drafting does not enable web-search tools. Public Reddit RSS is the free primary scanner. If RSS is unavailable and the key is configured, the scanner makes one Perplexity web-search call through `openai/gpt-5.6-luna`. Set `REDDIT_SUBREDDITS` to a comma-separated list to override the communities scanned.
 
 ### Founders’ Round milestones
 
@@ -80,6 +83,7 @@ Required production variables:
 - `GROWTH_ADMIN_TOKEN` (long random token for `/growth` reporting)
 - `CRON_SECRET` (used by Vercel Cron to authenticate the daily digest and Market Event jobs)
 - `PUBLIC_SITE_URL=https://www.valuationhallucination.com`
+- `PERPLEXITY_API_KEY` (for Reddit drafting)
 
 Optional growth alert variable:
 

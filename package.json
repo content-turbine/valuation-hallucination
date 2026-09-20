@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check api/waitlist.js && node --check api/card-vote.js && node --check api/events.js && node --check api/admin/growth.js && node --check api/admin/leads.js && node --check api/cron/reddit-digest.js && node --check api/cron/market-early.js && node --check api/cron/market-late.js && node --check api/market.js && node --check api/market/generate.js && node --check api/slack/events.js && node --check lib/card-vote.js && node --check lib/growth.js && node --check lib/market-cron.js && node --check lib/reddit-content.js && node --check lib/market-events.js && node --check lib/slack.js && node --check assets/analytics.js",
+    "check": "node --check api/waitlist.js && node --check api/card-vote.js && node --check api/events.js && node --check api/admin/growth.js && node --check api/admin/leads.js && node --check api/admin/reddit-posts.js && node --check api/admin/reddit-draft.js && node --check api/admin/reddit-scan.js && node --check api/cron/reddit-digest.js && node --check api/cron/market-early.js && node --check api/cron/market-late.js && node --check api/market.js && node --check api/market/generate.js && node --check api/slack/events.js && node --check lib/card-vote.js && node --check lib/growth.js && node --check lib/market-cron.js && node --check lib/reddit-content.js && node --check lib/reddit-drafts.js && node --check lib/reddit-scan.js && node --check lib/market-events.js && node --check lib/slack.js && node --check assets/analytics.js",
     "test": "node --test"
   },
   "dependencies": {

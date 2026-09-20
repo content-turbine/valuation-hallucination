@@ -1,5 +1,6 @@
 import { authorized, growthDatabase } from "../../lib/growth.js";
-import { nextPostRecommendation, redditQueue } from "../../lib/reddit-content.js";
+import { nextPostRecommendation, redditSubreddits } from "../../lib/reddit-content.js";
+import { loadRedditQueue, syncRedditOpportunities } from "../../lib/reddit-scan.js";
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
@@ -13,7 +14,26 @@ export default async function handler(req, res) {
   if (!db) return res.status(503).json({ detail: "Growth database is not configured." });
 
   try {
-    const [totals, funnel, campaigns, daily, referrals, recent] = await Promise.all([
+    let scanSummary = null;
+    const scanState = await db.query(
+      `SELECT MAX(last_seen_at) AS last_scanned_at, COUNT(*)::int AS opportunities
+       FROM valuation_hallucination.reddit_opportunities`
+    );
+    const lastScan = scanState.rows[0]?.last_scanned_at;
+    if (!lastScan || Date.now() - new Date(lastScan).getTime() > 12 * 3600000) {
+      try {
+        const scan = await syncRedditOpportunities(db);
+        scanSummary = {
+          last_scanned_at: scan.scanned_at,
+          opportunities: scan.items.length,
+          communities: scan.communities,
+          errors: scan.errors
+        };
+      } catch (error) {
+        console.error("growth_reddit_scan_error", error.message);
+      }
+    }
+    const [totals, funnel, campaigns, daily, referrals, recent, queue] = await Promise.all([
       db.query(`
         SELECT
           COUNT(*)::int AS founders,
@@ -52,21 +72,32 @@ export default async function handler(req, res) {
         GROUP BY day ORDER BY day
       `),
       db.query(`
-        SELECT 'VH-' || LPAD(id::text, 5, '0') AS founder_id, referral_count,
-          COALESCE(subreddit, utm_source, source) AS origin
+        SELECT 'VH-' || LPAD(id::text, 5, '0') AS founder_id, email, referral_count,
+          CASE
+            WHEN NULLIF(subreddit, '') IS NOT NULL THEN 'r/' || subreddit
+            WHEN NULLIF(utm_source, '') IS NOT NULL AND utm_source NOT IN ('direct', 'coming-soon') THEN utm_source
+            WHEN NULLIF(source, '') IS NOT NULL AND source NOT IN ('direct', 'coming-soon') THEN source
+            ELSE 'Original site / direct'
+          END AS origin
         FROM valuation_hallucination.waitlist
         WHERE referral_count > 0
         ORDER BY referral_count DESC, created_at ASC
         LIMIT 20
       `),
       db.query(`
-        SELECT 'VH-' || LPAD(id::text, 5, '0') AS founder_id,
-          COALESCE(subreddit, utm_source, source) AS origin,
+        SELECT 'VH-' || LPAD(id::text, 5, '0') AS founder_id, email,
+          CASE
+            WHEN NULLIF(subreddit, '') IS NOT NULL THEN 'r/' || subreddit
+            WHEN NULLIF(utm_source, '') IS NOT NULL AND utm_source NOT IN ('direct', 'coming-soon') THEN utm_source
+            WHEN NULLIF(source, '') IS NOT NULL AND source NOT IN ('direct', 'coming-soon') THEN source
+            ELSE 'Original site / direct'
+          END AS origin,
           COALESCE(utm_content, utm_campaign, '') AS content,
           referral_count, created_at
         FROM valuation_hallucination.waitlist
         ORDER BY created_at DESC LIMIT 25
-      `)
+      `),
+      loadRedditQueue(db)
     ]);
 
     const funnelMap = Object.fromEntries(funnel.rows.map((row) => [row.event_name, row.count]));
@@ -74,6 +105,12 @@ export default async function handler(req, res) {
       ...row,
       conversion_rate: row.views ? Number(((row.signups / row.views) * 100).toFixed(1)) : 0
     }));
+    const resolvedScan = scanSummary || {
+      last_scanned_at: lastScan,
+      opportunities: scanState.rows[0]?.opportunities || queue.length,
+      communities: redditSubreddits(),
+      errors: []
+    };
     return res.status(200).json({
       generated_at: new Date().toISOString(),
       totals: totals.rows[0],
@@ -88,12 +125,16 @@ export default async function handler(req, res) {
       daily: daily.rows,
       referral_leaders: referrals.rows,
       recent_founders: recent.rows,
-      reddit_queue: redditQueue,
-      next_post: nextPostRecommendation(performance)
+      reddit_queue: queue,
+      next_post: nextPostRecommendation(performance, queue),
+      reddit_scan: resolvedScan,
+      ai_drafting: {
+        configured: Boolean(process.env.PERPLEXITY_API_KEY),
+        model: process.env.PERPLEXITY_MODEL || "perplexity/glm-5.3-flash"
+      }
     });
   } catch (error) {
     console.error("growth_dashboard_error", error.message);
     return res.status(500).json({ detail: "Could not load growth reporting." });
   }
 }
-
