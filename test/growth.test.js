@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { attributionFrom, safeEventName, safeUrl } from "../lib/growth.js";
-import { nextPostRecommendation, opportunityFromSource, redditSubreddits, scheduledPostRecommendation } from "../lib/reddit-content.js";
-import { parseRedditFeed, scanReddit } from "../lib/reddit-scan.js";
+import {
+  nextPostRecommendation,
+  normalizedPostStatus,
+  opportunityFromSource,
+  redditStrategyTags,
+  redditSubreddits,
+  scheduledPostRecommendation
+} from "../lib/reddit-content.js";
+import { parseRedditFeed, scanReddit, screenRedditOpportunity } from "../lib/reddit-scan.js";
 import eventsHandler from "../api/events.js";
 import growthHandler from "../api/admin/growth.js";
 import waitlistHandler from "../api/waitlist.js";
@@ -97,6 +104,47 @@ test("requests priority Reddit communities before optional additions", async () 
     "boardgames", "startups", "venturecapital", "ProgrammerHumor", "Kickstarter"
   ]);
   assert.ok(calls.indexOf("IndieDev") > calls.indexOf("Kickstarter"));
+});
+
+test("assigns strategy and campaign-stage tags by community", () => {
+  assert.deepEqual(redditStrategyTags("BoardgameDesign"), ["credible", "pre-launch"]);
+  assert.deepEqual(redditStrategyTags("SideProject"), ["awareness", "pre-launch"]);
+  assert.deepEqual(redditStrategyTags("Kickstarter"), ["awareness", "launch"]);
+});
+
+test("archives are a valid terminal Reddit workflow state", () => {
+  assert.equal(normalizedPostStatus("archived"), "archived");
+});
+
+test("context screening rejects generic posts and explains relevant signals", () => {
+  const irrelevant = screenRedditOpportunity({
+    subreddit: "boardgames",
+    source_title: "What shelves do you use in your living room?",
+    source_excerpt: "Looking for furniture recommendations."
+  });
+  assert.equal(irrelevant.relevant, false);
+
+  const relevant = screenRedditOpportunity({
+    subreddit: "BoardgameDesign",
+    source_title: "Balancing a take-that mechanic in my card game prototype",
+    source_excerpt: "How do other designers keep this fun during a playtest?"
+  });
+  assert.equal(relevant.relevant, true);
+  assert.ok(relevant.context_score >= 70);
+  assert.ok(relevant.relevance_reasons.some((reason) => /game:/i.test(reason)));
+});
+
+test("Kickstarter screening requires both campaign and game context", () => {
+  assert.equal(screenRedditOpportunity({
+    subreddit: "Kickstarter",
+    source_title: "My new crowdfunding campaign",
+    source_excerpt: "We are launching a kitchen organizer."
+  }).relevant, false);
+  assert.equal(screenRedditOpportunity({
+    subreddit: "Kickstarter",
+    source_title: "Launching our card game Kickstarter campaign",
+    source_excerpt: "Questions about backers and manufacturing."
+  }).relevant, true);
 });
 
 test("next post recommendation uses measured performance", () => {
