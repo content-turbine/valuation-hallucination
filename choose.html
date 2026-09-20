@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="/assets/core-icon.png" />
+  <script src="/assets/analytics.js"></script>
   <style>
     :root { --ink:#07090b; --paper:#f8f5ee; --acid:#d9ff00; --pink:#ff1493; --violet:#6f30ff; --line:rgba(255,255,255,.22); }
     * { box-sizing:border-box; }
@@ -203,6 +204,7 @@
         const result = await response.json();
         if (!response.ok) throw new Error(result.detail || 'Your vote could not be recorded.');
         try { localStorage.setItem('vh_founder_id', result.founder_id); } catch (_) {}
+        if (window.posthog) posthog.capture('card_vote_success', { card_id:selected.value, vote_weight:result.vote_weight });
         voteStatus.textContent = `${result.detail} ${result.vote_weight === 2 ? 'Referral bonus applied: 2 votes.' : '1 vote recorded.'}`;
         await loadState();
       } catch (error) {

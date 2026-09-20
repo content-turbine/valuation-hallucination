@@ -1,5 +1,7 @@
 import crypto from "node:crypto";
+import { waitUntil } from "@vercel/functions";
 import pg from "pg";
+import { attributionFrom, notifyGrowth, recordEvent } from "../lib/growth.js";
 
 const { Pool } = pg;
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
@@ -86,9 +88,40 @@ async function database() {
       ALTER TABLE valuation_hallucination.waitlist
         ADD COLUMN IF NOT EXISTS terms_version TEXT,
         ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMPTZ,
-        ADD COLUMN IF NOT EXISTS age_confirmed BOOLEAN NOT NULL DEFAULT FALSE;
+        ADD COLUMN IF NOT EXISTS age_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS visitor_id TEXT,
+        ADD COLUMN IF NOT EXISTS utm_source TEXT,
+        ADD COLUMN IF NOT EXISTS utm_medium TEXT,
+        ADD COLUMN IF NOT EXISTS utm_campaign TEXT,
+        ADD COLUMN IF NOT EXISTS utm_content TEXT,
+        ADD COLUMN IF NOT EXISTS subreddit TEXT,
+        ADD COLUMN IF NOT EXISTS reddit_post_id TEXT,
+        ADD COLUMN IF NOT EXISTS landing_path TEXT,
+        ADD COLUMN IF NOT EXISTS referrer_url TEXT;
+      CREATE TABLE IF NOT EXISTS valuation_hallucination.growth_events (
+        id BIGSERIAL PRIMARY KEY,
+        event_name TEXT NOT NULL,
+        visitor_id TEXT,
+        session_id TEXT,
+        founder_id BIGINT,
+        source TEXT NOT NULL DEFAULT 'direct',
+        medium TEXT,
+        campaign TEXT,
+        content TEXT,
+        subreddit TEXT,
+        reddit_post_id TEXT,
+        referral_code TEXT,
+        landing_path TEXT,
+        referrer_url TEXT,
+        properties JSONB NOT NULL DEFAULT '{}'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
       CREATE INDEX IF NOT EXISTS waitlist_referral_code_idx
         ON valuation_hallucination.waitlist (referral_code);
+      CREATE INDEX IF NOT EXISTS growth_events_created_at_idx
+        ON valuation_hallucination.growth_events (created_at DESC);
+      CREATE INDEX IF NOT EXISTS growth_events_campaign_idx
+        ON valuation_hallucination.growth_events (source, campaign, content);
     `);
     initialized = true;
   }
@@ -117,7 +150,12 @@ export default async function handler(req, res) {
     return json(res, 405, { detail: "Method not allowed." });
   }
 
-  const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
+  let body;
+  try {
+    body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
+  } catch {
+    return json(res, 400, { detail: "Invalid request." });
+  }
   if (body.website) return json(res, 200, { status: "joined" });
 
   const email = normalizeEmail(body.email);
@@ -129,6 +167,7 @@ export default async function handler(req, res) {
     return json(res, 400, { detail: "Consent is required so we can send your voting invitation and Kickstarter launch notice." });
   }
   const smokeTest = email.endsWith("@example.invalid");
+  const attribution = attributionFrom(body);
 
   const db = await database();
   if (!db) {
@@ -147,6 +186,7 @@ export default async function handler(req, res) {
 
     let row;
     let status = "already_joined";
+    let referredFounder = null;
     if (existing.rowCount) {
       row = existing.rows[0];
       await client.query(
@@ -168,16 +208,27 @@ export default async function handler(req, res) {
           const inserted = await client.query(
             `INSERT INTO valuation_hallucination.waitlist
               (email, email_normalized, referral_code, referred_by, source, consent_text,
-               terms_version, terms_accepted_at, age_confirmed)
-             VALUES ($1, $1, $2, $3, $4, $5, $6, NOW(), TRUE)
+               terms_version, terms_accepted_at, age_confirmed, visitor_id, utm_source,
+               utm_medium, utm_campaign, utm_content, subreddit, reddit_post_id,
+               landing_path, referrer_url)
+             VALUES ($1, $1, $2, $3, $4, $5, $6, NOW(), TRUE, $7, $8, $9, $10, $11, $12, $13, $14, $15)
              RETURNING id, referral_code, referral_count`,
             [
               email,
               referralCode(),
               referredBy,
-              String(body.source || "coming-soon").slice(0, 80),
+              attribution.source,
               "Kickstarter launch, Founders’ Round voting invitations, and Valuation Hallucination game updates; unsubscribe anytime.",
-              termsVersion
+              termsVersion,
+              attribution.visitor_id || null,
+              attribution.source || null,
+              attribution.medium || null,
+              attribution.campaign || null,
+              attribution.content || null,
+              attribution.subreddit || null,
+              attribution.reddit_post_id || null,
+              attribution.landing_path || null,
+              attribution.referrer_url || null
             ]
           );
           row = inserted.rows[0];
@@ -188,12 +239,31 @@ export default async function handler(req, res) {
       }
 
       if (referredBy && referredBy !== row.referral_code) {
-        await client.query(
+        const referralUpdate = await client.query(
           `UPDATE valuation_hallucination.waitlist
            SET referral_count = referral_count + 1
-           WHERE referral_code = $1`,
+           WHERE referral_code = $1
+           RETURNING id, referral_code, referral_count`,
           [referredBy]
         );
+        referredFounder = referralUpdate.rows[0] || null;
+      }
+
+      await recordEvent(client, "waitlist_signup", { ...attribution, referral_code: referredBy }, {
+        status,
+        founder_id: `VH-${String(row.id).padStart(5, "0")}`
+      }, row.id);
+      if (referredFounder) {
+        await recordEvent(client, "referral_qualified", { ...attribution, referral_code: referredFounder.referral_code }, {
+          referral_count: referredFounder.referral_count,
+          referred_founder_id: referredFounder.id
+        }, referredFounder.id);
+        if ([1, 3, 5].includes(referredFounder.referral_count)) {
+          await recordEvent(client, "milestone_unlocked", { ...attribution, referral_code: referredFounder.referral_code }, {
+            milestone: referredFounder.referral_count,
+            referral_count: referredFounder.referral_count
+          }, referredFounder.id);
+        }
       }
     }
 
@@ -212,6 +282,17 @@ export default async function handler(req, res) {
     // Reserved .invalid addresses exercise the full transaction without
     // consuming a real waitlist position or leaving test data behind.
     await client.query(smokeTest ? "ROLLBACK" : "COMMIT");
+
+    if (!smokeTest && status === "joined") {
+      const sourceLabel = [attribution.subreddit && `r/${attribution.subreddit}`, attribution.content || attribution.campaign]
+        .filter(Boolean).join(" · ") || attribution.source;
+      const milestoneText = referredFounder && [1, 3, 5].includes(referredFounder.referral_count)
+        ? ` Referral milestone unlocked: ${referredFounder.referral_count}.`
+        : "";
+      waitUntil(notifyGrowth(`🎲 New Valuation Hallucination founder from ${sourceLabel || "direct"}. Total referrals credited: ${referredFounder ? 1 : 0}.${milestoneText}`).catch((error) => {
+        console.error("growth_slack_error", error.message);
+      }));
+    }
 
     return json(res, 200, {
       status,

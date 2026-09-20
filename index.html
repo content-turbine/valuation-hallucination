@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="/assets/core-icon.png" />
+  <script src="/assets/analytics.js"></script>
   <style>
     :root { --ink:#07090b; --paper:#f8f5ee; --acid:#d9ff00; --pink:#ff1493; --violet:#6f30ff; --line:rgba(255,255,255,.24); }
     * { box-sizing:border-box; }
@@ -138,7 +139,7 @@
           </div>
           <p class="form-status" id="formStatus" aria-live="polite">One email. One Founder ID.</p>
         </div>
-        <section class="signup-result" id="signupResult" aria-live="polite" hidden>
+        <section class="signup-result ph-no-capture" id="signupResult" aria-live="polite" hidden>
           <p class="signup-kicker mono" id="signupKicker">Shell company incorporated // cap table updated</p>
           <div class="signup-grid">
             <div class="signup-stat"><b id="founderId">VH-00001</b><span class="mono">Founder ID</span></div>
@@ -226,6 +227,18 @@
       referrer_url: firstTouch.referrer_url || '',
       landing_path: firstTouch.landing_path || location.pathname
     };
+    const productAnalyticsContext = {
+      utm_source: campaignContext.utm_source,
+      utm_medium: campaignContext.utm_medium,
+      utm_campaign: campaignContext.utm_campaign,
+      utm_content: campaignContext.utm_content,
+      subreddit: campaignContext.subreddit,
+      reddit_post_id: campaignContext.reddit_post_id,
+      landing_path: campaignContext.landing_path
+    };
+    const captureProductEvent = (eventName, properties = {}) => {
+      if (window.posthog?.capture) window.posthog.capture(eventName, { ...productAnalyticsContext, ...properties });
+    };
     const track = (eventName, properties = {}) => {
       const payload = JSON.stringify({ event_name: eventName, ...campaignContext, properties });
       if (navigator.sendBeacon) {
@@ -233,6 +246,7 @@
       } else {
         fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
       }
+      if (eventName !== 'page_view') captureProductEvent(eventName, properties);
     };
     track('page_view');
 
@@ -287,6 +301,10 @@
         document.getElementById('milestoneThree').classList.toggle('unlocked', result.referral_count >= 3);
         document.getElementById('milestoneFive').classList.toggle('unlocked', result.referral_count >= 5);
         signupResult.hidden = false;
+        captureProductEvent(result.status === 'already_joined' ? 'waitlist_returning_founder' : 'waitlist_signup', {
+          referred: Boolean(referralCode),
+          founder_archetype: result.persona.title
+        });
         email.value = '';
       } catch (error) {
         formStatus.classList.add('error');

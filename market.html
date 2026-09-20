@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="/assets/core-icon.png" />
+  <script src="/assets/analytics.js"></script>
   <style>
     :root { --ink:#07090b; --paper:#f8f5ee; --acid:#d9ff00; --pink:#ff1493; --violet:#6f30ff; --line:rgba(255,255,255,.2); }
     * { box-sizing:border-box; }
@@ -88,6 +89,9 @@
     const fullscreenButton = document.getElementById('fullscreenButton');
     const fields = ['signal','title','description','effect','target'];
     let renderedCardKey = null;
+    const capture = (eventName, properties = {}) => {
+      if (window.posthog?.capture) window.posthog.capture(eventName, properties);
+    };
 
     function render(data, payload) {
       card.className = `card ${data.polarity}`;
@@ -123,6 +127,13 @@
         const result = await response.json();
         const nextCardKey = `${result.card.id || result.card.effect_code}:${result.generated_at || 'fallback'}:${result.selected_index}`;
         await transitionTo(result.card, result, forceAnimation || nextCardKey !== renderedCardKey);
+        if (nextCardKey !== renderedCardKey) {
+          capture('market_card_view', {
+            card_id: result.card.id || result.card.effect_code,
+            polarity: result.card.polarity,
+            selection_method: result.selection_method
+          });
+        }
         renderedCardKey = nextCardKey;
       } catch (error) {
         document.getElementById('description').textContent = 'The market feed glitched. Try drawing again.';
@@ -133,7 +144,10 @@
       }
     }
 
-    drawButton.addEventListener('click', () => draw({ forceAnimation:true }));
+    drawButton.addEventListener('click', () => {
+      capture('market_card_refresh');
+      draw({ forceAnimation:true });
+    });
     if (!document.fullscreenEnabled) fullscreenButton.hidden = true;
     fullscreenButton.addEventListener('click', async () => {
       try {
@@ -143,6 +157,7 @@
     });
     document.addEventListener('fullscreenchange', () => {
       const active = Boolean(document.fullscreenElement);
+      capture('market_fullscreen_toggle', { active });
       fullscreenButton.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen');
       fullscreenButton.title = active ? 'Exit fullscreen' : 'Enter fullscreen';
       fullscreenButton.textContent = active ? '×' : '⛶';

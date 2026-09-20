@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>Growth Console — Valuation Hallucination</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="/assets/core-icon.png" />
+  <style>
+    :root{--ink:#07090b;--panel:#101317;--acid:#d9ff00;--pink:#ff1493;--violet:#6f30ff;--line:rgba(255,255,255,.17);--muted:rgba(255,255,255,.57)}
+    *{box-sizing:border-box}html{color-scheme:dark;background:var(--ink)}body{margin:0;background:radial-gradient(circle at 88% 0,rgba(111,48,255,.23),transparent 35rem),var(--ink);color:#fff;font-family:"Space Grotesk",sans-serif}.mono{font-family:"DM Mono",monospace;text-transform:uppercase;letter-spacing:.07em}.wrap{width:min(1320px,calc(100% - 34px));margin:auto}header{min-height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);gap:16px}.logo{width:min(300px,60vw)}header a{color:var(--acid);font-size:.65rem;text-decoration:none}main{padding:34px 0 72px}.eyebrow{color:var(--acid);font-size:.68rem}h1{margin:11px 0 6px;font-size:clamp(2.8rem,7vw,6.5rem);line-height:.85;letter-spacing:-.07em;text-transform:uppercase}h2{margin:0 0 16px;font-size:1rem;text-transform:uppercase;letter-spacing:.04em}.updated{color:var(--muted);font-size:.62rem}.gate{max-width:640px;margin:50px 0;padding:24px;border:1px solid var(--line);background:var(--panel);box-shadow:8px 8px 0 var(--violet)}input,select,button{min-height:44px;border:1px solid var(--line);border-radius:0;background:#090b0e;color:#fff;font:500 .8rem "DM Mono",monospace}input,select{width:100%;padding:0 12px}button{padding:0 16px;background:var(--acid);color:var(--ink);border-color:var(--acid);cursor:pointer;text-transform:uppercase}button.secondary{background:transparent;color:var(--acid)}.gate form{display:flex;gap:8px}.gate p{color:var(--muted);line-height:1.5}.dashboard[hidden],.gate[hidden]{display:none}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:28px 0}.stat,.panel{border:1px solid var(--line);background:rgba(16,19,23,.91)}.stat{padding:18px}.stat b{display:block;color:var(--acid);font-size:2rem;line-height:1}.stat span{display:block;margin-top:8px;color:var(--muted);font-size:.58rem}.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:14px}.panel{padding:20px;overflow:hidden}.link-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.link-output{display:flex;gap:8px;margin-top:8px}.link-output input{flex:1}.recommendation{padding:16px;border-left:4px solid var(--pink);background:rgba(255,20,147,.09)}.recommendation b{display:block;color:var(--pink);margin-bottom:7px}.recommendation p{margin:6px 0;color:rgba(255,255,255,.76);line-height:1.45}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.73rem}th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--acid);font:.58rem "DM Mono",monospace;text-transform:uppercase;letter-spacing:.06em}td{color:rgba(255,255,255,.73)}.queue-card{padding:13px 0;border-top:1px solid var(--line)}.queue-card:first-of-type{border-top:0}.queue-card b{font-size:.88rem}.queue-card p{margin:6px 0;color:var(--muted);font-size:.77rem;line-height:1.45}.tag{display:inline-block;margin-right:6px;padding:4px 6px;border:1px solid var(--line);color:var(--acid);font:.52rem "DM Mono",monospace;text-transform:uppercase}.actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0}.error{color:#ff7caf}.bars{height:150px;display:flex;align-items:end;gap:4px;padding-top:16px}.bar{flex:1;min-width:5px;background:linear-gradient(var(--acid),var(--violet));position:relative}.bar:hover:after{content:attr(data-label);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#fff;color:#000;padding:4px;white-space:nowrap;font:.52rem "DM Mono",monospace}@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.link-grid{grid-template-columns:1fr 1fr}}@media(max-width:560px){.gate form,.link-output,.actions{align-items:stretch;flex-direction:column}.stats,.link-grid{grid-template-columns:1fr}.wrap{width:min(100% - 22px,1320px)}}
+  </style>
+</head>
+<body>
+  <header class="wrap"><img class="logo" src="/assets/logo-light.webp" alt="Valuation Hallucination" /><a class="mono" href="/">← Public site</a></header>
+  <main class="wrap">
+    <div class="eyebrow mono">Private // growth control room</div><h1>Reddit Growth Console</h1><p class="updated mono" id="updated">Waiting for access</p>
+    <section class="gate" id="gate"><h2>Enter growth admin token</h2><p>The token stays in this browser tab and is sent only as an authorization header.</p><form id="accessForm"><input id="token" type="password" autocomplete="off" placeholder="Growth admin token" required /><button>Open console</button></form><p class="error" id="gateError"></p></section>
+    <section class="dashboard" id="dashboard" hidden>
+      <div class="actions"><span class="mono updated">Live first-party reporting · last 30 days unless marked total</span><div><button class="secondary" id="refresh">Refresh</button> <button id="download">Download leads CSV</button></div></div>
+      <div class="stats" id="stats"></div>
+      <div class="grid">
+        <section class="panel"><h2>30-day funnel</h2><div class="table-wrap"><table><thead><tr><th>Stage</th><th>Count</th><th>From views</th></tr></thead><tbody id="funnel"></tbody></table></div><div class="bars" id="daily" aria-label="Daily traffic and signup trend"></div></section>
+        <section class="panel"><h2>Next recommended post</h2><div class="recommendation" id="nextPost"></div></section>
+      </div>
+      <section class="panel" style="margin-top:14px"><h2>Tracked Reddit link builder</h2><div class="link-grid"><input id="subreddit" placeholder="Subreddit, e.g. SideProject" /><input id="campaign" value="prelaunch" placeholder="Campaign" /><input id="content" placeholder="Post ID, e.g. founder-id-reveal" /></div><div class="link-output"><input id="trackedLink" readonly /><button id="copyLink">Copy tracked link</button></div></section>
+      <div class="grid">
+        <section class="panel"><h2>Campaign performance</h2><div class="table-wrap"><table><thead><tr><th>Origin</th><th>Content</th><th>Views</th><th>Starts</th><th>Leads</th><th>CVR</th><th>Referrals</th></tr></thead><tbody id="campaigns"></tbody></table></div></section>
+        <section class="panel"><h2>Referral leaders</h2><div class="table-wrap"><table><thead><tr><th>Founder</th><th>Origin</th><th>Referrals</th></tr></thead><tbody id="leaders"></tbody></table></div></section>
+      </div>
+      <div class="grid">
+        <section class="panel"><h2>Reddit content queue</h2><div id="queue"></div></section>
+        <section class="panel"><h2>Recent founders</h2><div class="table-wrap"><table><thead><tr><th>Founder</th><th>Origin</th><th>Content</th><th>Refs</th><th>Joined</th></tr></thead><tbody id="recent"></tbody></table></div></section>
+      </div>
+    </section>
+  </main>
+  <script>
+    let adminToken = sessionStorage.getItem('vh_growth_token') || '';
+    const $ = (id) => document.getElementById(id);
+    const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    const originLabel = (row) => row.subreddit ? `r/${row.subreddit}` : (row.source || row.origin || 'direct');
+    async function api(path) {
+      const response = await fetch(path, { headers: { Authorization: `Bearer ${adminToken}` }, cache: 'no-store' });
+      if (!response.ok) throw new Error(response.status === 401 ? 'That token was not accepted.' : 'The growth console could not load.');
+      return response;
+    }
+    function link() {
+      const url = new URL('/', location.origin);
+      url.searchParams.set('utm_source', 'reddit'); url.searchParams.set('utm_medium', 'organic');
+      if ($('campaign').value.trim()) url.searchParams.set('utm_campaign', $('campaign').value.trim());
+      if ($('content').value.trim()) url.searchParams.set('utm_content', $('content').value.trim());
+      if ($('subreddit').value.trim()) url.searchParams.set('subreddit', $('subreddit').value.trim().replace(/^r\//i,''));
+      $('trackedLink').value = url.toString();
+    }
+    ['subreddit','campaign','content'].forEach((id) => $(id).addEventListener('input', link)); link();
+    async function load() {
+      const response = await api('/api/admin/growth'); const data = await response.json();
+      $('gate').hidden = true; $('dashboard').hidden = false; $('updated').textContent = `Updated ${new Date(data.generated_at).toLocaleString()}`;
+      const f = data.funnel, t = data.totals;
+      $('stats').innerHTML = [[t.founders,'Founders · total'],[t.founders_7d,'New founders · 7d'],[f.views,'Visits · 30d'],[f.signups,'Leads · 30d'],[t.referrals,'Qualified referrals · total']].map(([v,l])=>`<div class="stat"><b>${esc(v)}</b><span class="mono">${esc(l)}</span></div>`).join('');
+      const stages = [['Visits',f.views],['Form starts',f.starts],['Founder signups',f.signups],['Referral link copies',f.link_copies],['Qualified referrals',f.referrals]];
+      $('funnel').innerHTML = stages.map(([label,value])=>`<tr><td>${label}</td><td>${value}</td><td>${f.views ? ((value/f.views)*100).toFixed(1) : '0.0'}%</td></tr>`).join('');
+      const max = Math.max(1,...data.daily.map((d)=>d.views)); $('daily').innerHTML = data.daily.map((d)=>`<div class="bar" style="height:${Math.max(2,(d.views/max)*100)}%" data-label="${d.day}: ${d.views} visits / ${d.signups} leads"></div>`).join('');
+      const n=data.next_post; $('nextPost').innerHTML=`<b class="mono">r/${esc(n.subreddit)} · ${esc(n.phase)}</b><p><strong>${esc(n.title)}</strong></p><p>${esc(n.angle)}</p><p>${esc(n.cta)}</p><p class="updated mono">Why now: ${esc(n.reason)}</p>`;
+      $('campaigns').innerHTML=data.campaigns.map((r)=>`<tr><td>${esc(originLabel(r))}</td><td>${esc(r.content||r.campaign||'—')}</td><td>${r.views}</td><td>${r.starts}</td><td>${r.signups}</td><td>${r.conversion_rate}%</td><td>${r.referrals}</td></tr>`).join('')||'<tr><td colspan="7">No measured campaigns yet.</td></tr>';
+      $('leaders').innerHTML=data.referral_leaders.map((r)=>`<tr><td>${esc(r.founder_id)}</td><td>${esc(r.origin||'direct')}</td><td>${r.referral_count}</td></tr>`).join('')||'<tr><td colspan="3">No qualified referrals yet.</td></tr>';
+      $('recent').innerHTML=data.recent_founders.map((r)=>`<tr><td>${esc(r.founder_id)}</td><td>${esc(r.origin||'direct')}</td><td>${esc(r.content||'—')}</td><td>${r.referral_count}</td><td>${new Date(r.created_at).toLocaleDateString()}</td></tr>`).join('');
+      $('queue').innerHTML=data.reddit_queue.map((r)=>`<article class="queue-card"><span class="tag">r/${esc(r.subreddit)}</span><span class="tag">${esc(r.status)}</span><b>${esc(r.title)}</b><p>${esc(r.angle)}</p><p><strong>CTA:</strong> ${esc(r.cta)}</p><button class="secondary queue-link" data-sub="${esc(r.subreddit)}" data-content="${esc(r.id)}">Build link</button></article>`).join('');
+      document.querySelectorAll('.queue-link').forEach((button)=>button.addEventListener('click',()=>{$('subreddit').value=button.dataset.sub;$('content').value=button.dataset.content;link();$('trackedLink').scrollIntoView({behavior:'smooth',block:'center'});}));
+    }
+    $('accessForm').addEventListener('submit',async(e)=>{e.preventDefault();adminToken=$('token').value.trim();sessionStorage.setItem('vh_growth_token',adminToken);try{await load();}catch(error){$('gateError').textContent=error.message;}});
+    $('refresh').addEventListener('click',()=>load().catch((e)=>alert(e.message)));
+    $('copyLink').addEventListener('click',async()=>{await navigator.clipboard.writeText($('trackedLink').value);$('copyLink').textContent='Copied';setTimeout(()=>$('copyLink').textContent='Copy tracked link',1300);});
+    $('download').addEventListener('click',async()=>{try{const response=await api('/api/admin/leads');const blob=await response.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`valuation-hallucination-leads-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);}catch(e){alert(e.message);}});
+    if(adminToken){load().catch(()=>{sessionStorage.removeItem('vh_growth_token');adminToken='';});}
+  </script>
+</body>
+</html>
