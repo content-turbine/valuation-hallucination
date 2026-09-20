@@ -49,7 +49,7 @@ Open `/growth`, enter `GROWTH_ADMIN_TOKEN`, and use the dashboard to:
 
 The daily Vercel cron reads current public Reddit RSS feeds, updates the ranked opportunity queue, creates a draft, and sends it to Slack at 14:00 UTC. The former `growth/reddit-plan.json` file is not used. It never publishes to Reddit. A human must open the source discussion, review subreddit rules, approve the wording, and post through an authenticated Reddit session.
 
-Set `PERPLEXITY_API_KEY` to enable copy-ready drafting. The default `PERPLEXITY_MODEL` is `perplexity/glm-5.3-flash`; drafting does not enable web-search tools. Public Reddit RSS is the free primary scanner. If RSS is unavailable and the key is configured, the scanner makes one Perplexity web-search call through `openai/gpt-5.6-luna`. Set `REDDIT_SUBREDDITS` to a comma-separated list to override the communities scanned.
+Set `PERPLEXITY_API_KEY` to enable copy-ready drafting. The default `PERPLEXITY_MODEL` is `perplexity/glm-5.3-flash`; drafting does not enable web-search tools. Public Reddit RSS is the free primary scanner. If RSS is unavailable and the key is configured, the scanner makes one Perplexity web-search call through `openai/gpt-5.6-luna`. The priority communities are `r/SideProject`, `r/EntrepreneurRideAlong`, `r/BoardgameDesign`, `r/tabletopgamedesign`, `r/playtesters`, `r/boardgames`, `r/startups`, `r/venturecapital`, `r/ProgrammerHumor`, and `r/Kickstarter`; they are scanned first and cannot be displaced by an older Vercel configuration. Set `REDDIT_SUBREDDITS` to add more communities after that priority group.
 
 ### Founders’ Round milestones
 

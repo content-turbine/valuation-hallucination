@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { attributionFrom, safeEventName, safeUrl } from "../lib/growth.js";
-import { nextPostRecommendation, opportunityFromSource, scheduledPostRecommendation } from "../lib/reddit-content.js";
-import { parseRedditFeed } from "../lib/reddit-scan.js";
+import { nextPostRecommendation, opportunityFromSource, redditSubreddits, scheduledPostRecommendation } from "../lib/reddit-content.js";
+import { parseRedditFeed, scanReddit } from "../lib/reddit-scan.js";
 import eventsHandler from "../api/events.js";
 import growthHandler from "../api/admin/growth.js";
 import waitlistHandler from "../api/waitlist.js";
@@ -66,6 +66,37 @@ test("parses current Reddit RSS entries", () => {
   assert.equal(result.post_id, "reddit-abc123");
   assert.equal(result.source_title, "Testing an AI card game");
   assert.match(result.source_excerpt, /Prototype feedback/);
+});
+
+test("keeps the launch communities ahead of configured Reddit additions", () => {
+  const communities = redditSubreddits("Entrepreneur,IndieDev");
+  assert.deepEqual(communities.slice(0, 10), [
+    "SideProject", "EntrepreneurRideAlong", "BoardgameDesign", "tabletopgamedesign", "playtesters",
+    "boardgames", "startups", "venturecapital", "ProgrammerHumor", "Kickstarter"
+  ]);
+  assert.ok(communities.indexOf("IndieDev") > communities.indexOf("Kickstarter"));
+});
+
+test("requests priority Reddit communities before optional additions", async () => {
+  const previous = process.env.REDDIT_SUBREDDITS;
+  process.env.REDDIT_SUBREDDITS = "IndieDev";
+  const calls = [];
+  const feed = (subreddit) => `<?xml version="1.0"?><feed><entry><content type="html">&lt;p&gt;Current discussion&lt;/p&gt;</content><id>t3_${subreddit.toLowerCase()}</id><link href="https://www.reddit.com/r/${subreddit}/comments/${subreddit.toLowerCase()}/example/"/><published>2026-09-20T01:18:55+00:00</published><title>${subreddit} discussion</title></entry></feed>`;
+  try {
+    await scanReddit(async (url) => {
+      const subreddit = decodeURIComponent(url.match(/\/r\/([^/]+)\/new/)?.[1] || "");
+      calls.push(subreddit);
+      return { ok: true, text: async () => feed(subreddit) };
+    });
+  } finally {
+    if (previous === undefined) delete process.env.REDDIT_SUBREDDITS;
+    else process.env.REDDIT_SUBREDDITS = previous;
+  }
+  assert.deepEqual(calls.slice(0, 10), [
+    "SideProject", "EntrepreneurRideAlong", "BoardgameDesign", "tabletopgamedesign", "playtesters",
+    "boardgames", "startups", "venturecapital", "ProgrammerHumor", "Kickstarter"
+  ]);
+  assert.ok(calls.indexOf("IndieDev") > calls.indexOf("Kickstarter"));
 });
 
 test("next post recommendation uses measured performance", () => {
