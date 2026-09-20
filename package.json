@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check api/waitlist.js && node --check api/market.js && node --check api/market/generate.js && node --check api/slack/events.js && node --check lib/market-events.js && node --check lib/slack.js"
+    "check": "node --check api/waitlist.js && node --check api/card-vote.js && node --check api/events.js && node --check api/admin/growth.js && node --check api/admin/leads.js && node --check api/cron/reddit-digest.js && node --check api/market.js && node --check api/market/generate.js && node --check api/slack/events.js && node --check lib/card-vote.js && node --check lib/growth.js && node --check lib/reddit-content.js && node --check lib/market-events.js && node --check lib/slack.js",
+    "test": "node --test"
   },
   "dependencies": {
     "@vercel/functions": "^3.9.8",

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Choose the Card — Valuation Hallucination</title>
+  <meta name="description" content="Three cards. Three reveals. Founders choose which card joins Valuation Hallucination." />
+  <meta name="theme-color" content="#07090b" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="/assets/core-icon.png" />
+  <style>
+    :root { --ink:#07090b; --paper:#f8f5ee; --acid:#d9ff00; --pink:#ff1493; --violet:#6f30ff; --line:rgba(255,255,255,.22); }
+    * { box-sizing:border-box; }
+    html { color-scheme:dark; }
+    body { margin:0; min-height:100vh; color:white; background:radial-gradient(circle at 50% 28%,rgba(111,48,255,.2),transparent 29rem),radial-gradient(circle at 78% 64%,rgba(217,255,0,.1),transparent 24rem),var(--ink); font-family:"Space Grotesk",system-ui,sans-serif; }
+    body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.16; background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px); background-size:34px 34px; mask-image:linear-gradient(to bottom,black,transparent 92%); }
+    a { color:inherit; }
+    button,input { font:inherit; }
+    .mono { font-family:"DM Mono",monospace; text-transform:uppercase; letter-spacing:.08em; }
+    .page { width:min(1180px,calc(100% - 40px)); margin:0 auto; position:relative; }
+    .nav { min-height:74px; display:flex; align-items:center; justify-content:space-between; gap:20px; border-bottom:1px solid var(--line); }
+    .logo { width:min(370px,55vw); height:auto; display:block; }
+    .back { color:rgba(255,255,255,.66); font-size:.67rem; text-decoration:none; }
+    .back:hover,.back:focus-visible { color:var(--acid); outline:none; }
+    .hero { padding:54px 0 28px; text-align:center; }
+    .kicker { color:var(--acid); font-size:.7rem; }
+    h1 { margin:15px auto 18px; max-width:920px; font-size:clamp(3.2rem,8vw,7rem); line-height:.86; letter-spacing:-.075em; text-transform:uppercase; }
+    h1 span { color:var(--acid); text-shadow:5px 5px 0 var(--violet); }
+    .intro { max-width:720px; margin:0 auto; color:rgba(255,255,255,.7); font-size:clamp(1rem,2vw,1.25rem); line-height:1.55; }
+    .reveal-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-width:760px; margin:28px auto 0; }
+    .reveal-step { border:1px solid var(--line); padding:11px; background:rgba(0,0,0,.35); color:rgba(255,255,255,.46); font-size:.62rem; }
+    .reveal-step.live { border-color:var(--acid); color:var(--ink); background:var(--acid); }
+    .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; padding:24px 0 46px; }
+    .card-choice { display:block; position:relative; min-width:0; cursor:default; }
+    .card-choice input { position:absolute; opacity:0; pointer-events:none; }
+    .card { position:relative; aspect-ratio:2.5/3.5; overflow:hidden; display:flex; flex-direction:column; padding:20px; border:2px solid rgba(255,255,255,.66); background:#101216; box-shadow:12px 14px 0 rgba(0,0,0,.68); transform:rotate(-1deg); transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
+    .card-choice:nth-child(2) .card { transform:rotate(1deg) translateY(13px); }
+    .card-choice:nth-child(3) .card { transform:rotate(-.5deg); }
+    .card-choice.selectable { cursor:pointer; }
+    .card-choice.selectable:hover .card { transform:translateY(-7px) rotate(0); border-color:var(--acid); }
+    .card-choice input:focus-visible + .card { outline:3px solid var(--acid); outline-offset:5px; }
+    .card-choice input:checked + .card { border-color:var(--acid); box-shadow:10px 12px 0 var(--violet),0 0 42px rgba(217,255,0,.23); transform:translateY(-8px) rotate(0); }
+    .card.locked { align-items:center; justify-content:center; text-align:center; background:repeating-linear-gradient(135deg,rgba(111,48,255,.12) 0 12px,transparent 12px 24px),#0c0e12; }
+    .card.locked::before { content:"VH"; position:absolute; inset:18px; display:grid; place-items:center; border:1px solid rgba(255,255,255,.12); color:rgba(255,255,255,.025); font-size:9rem; font-weight:700; transform:rotate(-28deg); }
+    .question { position:relative; font-size:clamp(6rem,12vw,10rem); line-height:.8; color:var(--acid); text-shadow:7px 7px 0 var(--violet); }
+    .locked-label { position:relative; margin-top:24px; color:rgba(255,255,255,.7); font-size:.62rem; }
+    .countdown { position:relative; margin-top:10px; color:white; font-size:.76rem; }
+    .card-top { display:flex; justify-content:space-between; gap:10px; font-size:.62rem; }
+    .card-top b { color:var(--accent,var(--acid)); }
+    .card-title { margin:auto 0 18px; font-size:clamp(2rem,4vw,3.5rem); line-height:.84; letter-spacing:-.065em; text-transform:uppercase; }
+    .card-flavor { margin:0 0 20px; color:rgba(255,255,255,.69); font-size:.92rem; line-height:1.45; }
+    .card-effect { margin-top:auto; padding-top:15px; border-top:2px solid var(--accent,var(--acid)); color:var(--accent,var(--acid)); font-size:.7rem; }
+    .accent-acid { --accent:var(--acid); }.accent-pink { --accent:var(--pink); }.accent-violet { --accent:#9a70ff; }
+    .revealed .card { animation:card-in .7s cubic-bezier(.2,.75,.2,1) both; }
+    @keyframes card-in { from { opacity:0; transform:rotateY(80deg) scale(.9); } }
+    .vote-panel { display:grid; grid-template-columns:1fr auto; gap:30px; align-items:center; margin:0 0 54px; padding:26px; border:1px solid var(--line); background:rgba(255,255,255,.055); }
+    .vote-panel h2 { margin:0 0 8px; font-size:clamp(1.7rem,4vw,3rem); text-transform:uppercase; letter-spacing:-.04em; }
+    .vote-panel p { margin:0; max-width:650px; color:rgba(255,255,255,.62); line-height:1.5; }
+    .vote-panel strong { color:var(--acid); }
+    .vote-form { min-width:min(100%,390px); }
+    .vote-fields { display:flex; gap:9px; }
+    .vote-fields input { flex:1; min-width:0; min-height:50px; padding:0 14px; border:1px solid var(--line); border-radius:0; background:rgba(0,0,0,.46); color:white; outline:none; text-transform:uppercase; }
+    .vote-fields input:focus { border-color:var(--acid); }
+    .vote-fields button { min-height:50px; padding:0 18px; border:2px solid var(--ink); background:var(--acid); color:var(--ink); box-shadow:5px 5px 0 var(--violet); cursor:pointer; font-size:.65rem; white-space:nowrap; }
+    .vote-fields button:disabled,.vote-fields input:disabled { opacity:.42; cursor:not-allowed; }
+    .status { min-height:20px; margin:12px 0 0; color:var(--acid); font-size:.63rem; line-height:1.4; }
+    .status.error { color:#ff75b9; }
+    .honeypot { position:absolute!important; width:1px!important; height:1px!important; overflow:hidden!important; clip:rect(0 0 0 0)!important; white-space:nowrap!important; }
+    footer { display:flex; justify-content:space-between; gap:18px; padding:14px 0 22px; border-top:1px solid var(--line); color:rgba(255,255,255,.42); font-size:.57rem; }
+    footer a { text-decoration:none; } footer a:hover { color:var(--acid); }
+    @media (max-width:820px) { .hero{padding-top:38px}.cards{gap:12px}.card{padding:14px}.card-flavor{font-size:.78rem}.vote-panel{grid-template-columns:1fr}.vote-form{min-width:0} }
+    @media (max-width:620px) { .page{width:min(100% - 26px,1180px)}.nav{min-height:64px}.logo{width:240px}.hero{padding:32px 0 18px}h1{font-size:clamp(3rem,16vw,4.4rem)}.intro{font-size:.98rem}.reveal-strip{margin-top:20px}.reveal-step{padding:8px 4px;font-size:.5rem}.cards{grid-template-columns:1fr;padding-top:12px}.card-choice,.card-choice:nth-child(2),.card-choice:nth-child(3){width:min(82vw,330px);margin:0 auto}.card-choice:nth-child(2) .card{transform:rotate(1deg)}.card{padding:19px}.card-title{font-size:2.8rem}.vote-panel{padding:19px;margin-bottom:34px}.vote-fields{display:grid}.vote-fields button{width:100%}footer{font-size:.5rem;flex-direction:column} }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.001ms!important; animation-iteration-count:1!important; transition:none!important; } }
+  </style>
+</head>
+<body>
+  <header class="page nav">
+    <a href="/" aria-label="Valuation Hallucination home"><img class="logo" src="/assets/logo-light.webp" width="520" height="201" alt="Valuation Hallucination" /></a>
+    <a class="back mono" href="/">← Main page</a>
+  </header>
+  <main class="page">
+    <section class="hero">
+      <div class="kicker mono">Founders’ Round // community vote</div>
+      <h1>Three cards.<br /><span>One makes the deck.</span></h1>
+      <p class="intro">A new card is revealed every 48 hours. Once the final card opens, Founders choose which one joins the finished game.</p>
+      <div class="reveal-strip" id="revealStrip" aria-label="Card reveal progress"></div>
+    </section>
+    <section class="cards" id="cards" aria-live="polite" aria-label="Card choices"></section>
+    <section class="vote-panel">
+      <div>
+        <h2 id="voteTitle">Voting unlocks after Card 3.</h2>
+        <p id="voteCopy">Your Founder ID is your ballot. Refer three founders and your choice automatically counts twice.</p>
+      </div>
+      <form class="vote-form" id="voteForm">
+        <label class="honeypot" for="website">Leave this field empty</label>
+        <input class="honeypot" id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+        <label class="honeypot" for="founderId">Founder ID</label>
+        <div class="vote-fields">
+          <input id="founderId" name="founder_id" inputmode="text" autocomplete="off" placeholder="VH-00042" maxlength="15" required />
+          <button class="mono" id="voteButton" type="submit">Cast my vote ↗</button>
+        </div>
+        <p class="status mono" id="voteStatus" aria-live="polite">The board is still under wraps.</p>
+      </form>
+    </section>
+  </main>
+  <footer class="page mono"><span>© 2026 Valuation Hallucination</span><span><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></span></footer>
+  <script>
+    const cardsRoot = document.getElementById('cards');
+    const revealStrip = document.getElementById('revealStrip');
+    const voteForm = document.getElementById('voteForm');
+    const voteButton = document.getElementById('voteButton');
+    const voteStatus = document.getElementById('voteStatus');
+    const founderId = document.getElementById('founderId');
+    const voteTitle = document.getElementById('voteTitle');
+    const voteCopy = document.getElementById('voteCopy');
+    let voteState = null;
+    let refreshing = false;
+
+    try { founderId.value = localStorage.getItem('vh_founder_id') || ''; } catch (_) {}
+
+    const escapeHtml = (value) => String(value || '').replace(/[&<>'"]/g, (character) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[character]));
+    const dateLabel = (value) => new Intl.DateTimeFormat(undefined, { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }).format(new Date(value));
+    const countdown = (value) => {
+      const difference = Math.max(0, new Date(value).getTime() - Date.now());
+      const days = Math.floor(difference / 86400000);
+      const hours = Math.floor((difference % 86400000) / 3600000);
+      const minutes = Math.floor((difference % 3600000) / 60000);
+      const seconds = Math.floor((difference % 60000) / 1000);
+      return `${days ? `${days}D ` : ''}${String(hours).padStart(2,'0')}H ${String(minutes).padStart(2,'0')}M ${String(seconds).padStart(2,'0')}S`;
+    };
+
+    function cardMarkup(card) {
+      if (!card.revealed) {
+        return `<label class="card-choice"><input type="radio" name="card_id" value="${escapeHtml(card.id)}" disabled /><article class="card locked accent-${escapeHtml(card.accent)}"><div class="question">?</div><div class="locked-label mono">Card ${card.number} reveals ${escapeHtml(dateLabel(card.reveal_at))}</div><div class="countdown mono" data-countdown="${escapeHtml(card.reveal_at)}">${countdown(card.reveal_at)}</div></article></label>`;
+      }
+      const selectable = voteState.voting.open ? ' selectable' : '';
+      const disabled = voteState.voting.open ? '' : ' disabled';
+      return `<label class="card-choice revealed${selectable}"><input type="radio" name="card_id" value="${escapeHtml(card.id)}"${disabled} /><article class="card accent-${escapeHtml(card.accent)}"><div class="card-top mono"><b>${escapeHtml(card.category)}</b><span>VH-C0${card.number}</span></div><h2 class="card-title">${escapeHtml(card.title)}</h2><p class="card-flavor">${escapeHtml(card.flavor)}</p><div class="card-effect mono">${escapeHtml(card.effect)}</div></article></label>`;
+    }
+
+    function render() {
+      cardsRoot.innerHTML = voteState.cards.map(cardMarkup).join('');
+      revealStrip.innerHTML = voteState.cards.map((card) => `<div class="reveal-step mono${card.revealed ? ' live' : ''}">Card ${card.number} // ${card.revealed ? 'Revealed' : dateLabel(card.reveal_at)}</div>`).join('');
+      const inputs = voteForm.querySelectorAll('input:not(.honeypot),button');
+      inputs.forEach((input) => { input.disabled = !voteState.voting.open; });
+      if (voteState.voting.open) {
+        voteTitle.textContent = 'The Founder vote is open.';
+        voteCopy.innerHTML = `Choose one card and enter your Founder ID. Voting closes <strong>${escapeHtml(dateLabel(voteState.voting.closes_at))}</strong>. Your referral bonus is applied automatically.`;
+        voteStatus.textContent = `${voteState.founders_voted} founder${voteState.founders_voted === 1 ? '' : 's'} voted so far.`;
+      } else if (voteState.voting.closed) {
+        voteTitle.textContent = 'Voting is closed.';
+        voteCopy.textContent = 'The winning card is undergoing completely reasonable due diligence.';
+        voteStatus.textContent = `${voteState.founders_voted} founders cast a ballot.`;
+      } else {
+        voteTitle.textContent = 'Voting unlocks after Card 3.';
+        voteCopy.textContent = 'Your Founder ID is your ballot. Refer three founders and your choice automatically counts twice.';
+        voteStatus.textContent = `Final reveal in ${countdown(voteState.voting.opens_at)}.`;
+      }
+    }
+
+    async function loadState() {
+      if (refreshing) return;
+      refreshing = true;
+      try {
+        const response = await fetch('/api/card-vote', { headers:{ Accept:'application/json' } });
+        if (!response.ok) throw new Error('The reveal board could not load.');
+        voteState = await response.json();
+        render();
+      } catch (error) {
+        voteStatus.classList.add('error');
+        voteStatus.textContent = error.message;
+      } finally { refreshing = false; }
+    }
+
+    function tick() {
+      if (!voteState) return;
+      document.querySelectorAll('[data-countdown]').forEach((element) => { element.textContent = countdown(element.dataset.countdown); });
+      if (!voteState.voting.open && !voteState.voting.closed) voteStatus.textContent = `Final reveal in ${countdown(voteState.voting.opens_at)}.`;
+      const now = Date.now();
+      const revealPassed = voteState.cards.some((card) => !card.revealed && now >= new Date(card.reveal_at).getTime());
+      const closePassed = voteState.voting.open && now >= new Date(voteState.voting.closes_at).getTime();
+      if (revealPassed || closePassed) loadState();
+    }
+
+    voteForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const selected = voteForm.querySelector('input[name="card_id"]:checked');
+      if (!selected) {
+        voteStatus.classList.add('error');
+        voteStatus.textContent = 'Choose a card before casting your vote.';
+        return;
+      }
+      voteStatus.classList.remove('error');
+      voteStatus.textContent = 'Adding your ballot to the cap table…';
+      voteButton.disabled = true;
+      try {
+        const response = await fetch('/api/card-vote', {
+          method:'POST', headers:{ 'Content-Type':'application/json' },
+          body:JSON.stringify({ founder_id:founderId.value.trim().toUpperCase(), card_id:selected.value, website:document.getElementById('website').value })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || 'Your vote could not be recorded.');
+        try { localStorage.setItem('vh_founder_id', result.founder_id); } catch (_) {}
+        voteStatus.textContent = `${result.detail} ${result.vote_weight === 2 ? 'Referral bonus applied: 2 votes.' : '1 vote recorded.'}`;
+        await loadState();
+      } catch (error) {
+        voteStatus.classList.add('error');
+        voteStatus.textContent = error.message;
+      } finally { voteButton.disabled = !voteState?.voting.open; }
+    });
+
+    loadState();
+    setInterval(tick, 1000);
+  </script>
+</body>
+</html>

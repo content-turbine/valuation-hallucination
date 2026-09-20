@@ -66,6 +66,8 @@
     .milestone span { display:block; margin-top:6px; font-size:.52rem; line-height:1.35; }
     .milestone.unlocked { color:var(--ink); border-color:var(--acid); background:var(--acid); }
     .milestone.reserved { color:white; border-color:var(--violet); background:rgba(111,48,255,.34); }
+    .vote-room { display:inline-flex; align-items:center; justify-content:center; min-height:42px; margin-top:13px; padding:0 14px; border:1px solid var(--acid); color:var(--acid); text-decoration:none; font-size:.61rem; }
+    .vote-room:hover,.vote-room:focus-visible { background:var(--acid); color:var(--ink); outline:none; }
     .honeypot { position:absolute!important; width:1px!important; height:1px!important; overflow:hidden!important; clip:rect(0 0 0 0)!important; white-space:nowrap!important; }
     .signal-link { color:inherit; text-decoration:none; }
     .signal-link .signal { transition:border-color .18s ease,transform .18s ease,background .18s ease; }
@@ -146,6 +148,7 @@
             <div class="milestone" id="milestoneFive"><b class="mono">5 referrals</b><span>Name on the digital Cap Table</span></div>
             <div class="milestone reserved" id="milestoneBonus"><b class="mono">48-hour backer</b><span>Founder Edition bonus reserved</span></div>
           </div>
+          <a class="vote-room mono" href="/choose">Enter the card reveal →</a>
         </section>
         <div class="signals reveal" aria-label="Game teaser">
           <div class="signal"><b>54</b><span class="mono">Cards in the core deck</span></div>
@@ -270,6 +273,7 @@
         document.getElementById('personaTitle').textContent = result.persona.title;
         document.getElementById('personaValue').textContent = `$${result.persona.valuation_millions}M`;
         document.getElementById('leaderboardRank').textContent = `#${String(result.leaderboard_rank).padStart(3,'0')}`;
+        try { localStorage.setItem('vh_founder_id', result.founder_id); } catch (_) {}
         document.getElementById('referralLink').value = `${window.location.origin}/?ref=${result.referral_code}`;
         document.getElementById('milestoneOne').classList.toggle('unlocked', result.referral_count >= 1);
         document.getElementById('milestoneThree').classList.toggle('unlocked', result.referral_count >= 3);
