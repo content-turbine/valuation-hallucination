@@ -1,4 +1,4 @@
-import { overrideFromSlack } from "../../lib/market-events.js";
+import { acknowledgeSlackOverride, overrideFromSlack } from "../../lib/market-events.js";
 import { readRawBody, verifySlack } from "../../lib/slack.js";
 
 export const config = { api: { bodyParser: false } };
@@ -37,6 +37,7 @@ export default async function handler(req, res) {
 
   const match = String(event.text || "").trim().match(/^pick\s+([123])\b/i);
   if (!match) return res.status(200).json({ ok: true });
-  const changed = await overrideFromSlack(event.thread_ts, Number(match[1]) - 1);
-  return res.status(200).json({ ok: true, overridden: changed });
+  const result = await overrideFromSlack(event.thread_ts, Number(match[1]) - 1);
+  if (result) await acknowledgeSlackOverride(result, event.thread_ts);
+  return res.status(200).json({ ok: true, overridden: Boolean(result) });
 }
