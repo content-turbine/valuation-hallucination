@@ -70,8 +70,8 @@
     .milestone span { display:block; margin-top:6px; font-size:.52rem; line-height:1.35; }
     .milestone.unlocked { color:var(--ink); border-color:var(--acid); background:var(--acid); }
     .milestone.reserved { color:white; border-color:var(--violet); background:rgba(111,48,255,.34); }
-    .vote-room { flex:none; display:inline-flex; align-items:center; justify-content:center; min-height:35px; padding:0 11px; border:1px solid var(--acid); color:var(--acid); text-decoration:none; font-size:.55rem; white-space:nowrap; }
-    .vote-room:hover,.vote-room:focus-visible { background:var(--acid); color:var(--ink); outline:none; }
+    .founders-copy-link { color:inherit; text-decoration:underline; text-decoration-color:rgba(255,255,255,.42); text-underline-offset:2px; transition:color .18s ease,text-decoration-color .18s ease; }
+    .founders-copy-link:hover,.founders-copy-link:focus-visible { color:var(--acid); text-decoration-color:var(--acid); outline:none; }
     .honeypot { position:absolute!important; width:1px!important; height:1px!important; overflow:hidden!important; clip:rect(0 0 0 0)!important; white-space:nowrap!important; }
     .signal-link { color:inherit; text-decoration:none; }
     .signal-link .signal { transition:border-color .18s ease,transform .18s ease,background .18s ease; }
@@ -94,6 +94,7 @@
     .legal-links { display:flex; align-items:center; gap:12px; }
     .made { text-align:right; }
     .made b { color:var(--pink); font-size:.82rem; }
+    .made-mobile { display:none; }
     .socials { position:absolute; z-index:2; right:max(13px,calc((100vw - 1260px)/2)); top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:7px; padding:5px 0 5px 54px; background:linear-gradient(90deg,transparent 0,var(--ink) 32%); }
     .social-link { position:relative; width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--line); color:white; background:var(--ink); text-decoration:none; transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease; }
     .social-link:hover,.social-link:focus-visible { background:var(--acid); color:var(--ink); border-color:var(--acid); transform:translateY(-2px); outline:none; }
@@ -107,8 +108,8 @@
     .reveal:nth-child(2) { animation-delay:.12s; } .reveal:nth-child(3) { animation-delay:.22s; } .reveal:nth-child(4) { animation-delay:.32s; }
     @keyframes reveal { to { opacity:1; transform:none; } }
     @media (max-width:900px) { .nav{min-height:68px} main{grid-template-columns:1fr;padding-top:38px;gap:12px} h1{font-size:clamp(3.8rem,15vw,6.7rem)} .lockup{position:relative;top:auto;min-height:450px;place-items:center;padding-top:0}.product{width:min(760px,108%)}.lockup::before{width:65%} }
-    @media (max-width:620px) { .page{width:min(100% - 26px,1260px)} .logo{width:250px}.status span{display:none} main{min-height:auto;padding-top:28px} main>section:first-child{display:contents} .eyebrow{order:1} h1{order:2;font-size:clamp(3.4rem,17vw,4.8rem)} .lead{order:3} .lockup{order:4;min-height:315px;margin-inline:-13px} .signals{order:5;grid-template-columns:1fr 1fr;margin-top:8px} .founders-panel{order:6;margin-top:8px} .signup-result{order:7} .waitlist{display:grid}.waitlist button{width:100%}.signal{padding:12px 10px}.signal b{font-size:1.25rem}.signup-grid{grid-template-columns:1fr 1fr}.reward-track{grid-template-columns:1fr 1fr}.milestone:last-child{grid-column:1/-1}.referral{display:grid}.referral input{min-height:40px}.product{width:112%}.classified{right:-1%;bottom:4%}.ticker{min-height:44px}.ticker-track{padding-block:11px}.socials{right:8px;gap:5px;padding-left:42px}.social-link{width:31px;height:31px}footer{gap:10px;padding:9px 0 11px;font-size:.5rem}.legal-links{gap:7px}.made{max-width:48%} }
-    @media (max-width:620px) { .founders-panel{padding:13px}.founders-head{align-items:flex-start}.founders-offer span{font-size:.72rem}.vote-room{min-height:32px;padding-inline:8px}.consent-row{display:grid} }
+    @media (max-width:620px) { .page{width:min(100% - 26px,1260px)} .logo{width:250px}.status span{display:none} main{min-height:auto;padding-top:28px} main>section:first-child{display:contents} .eyebrow{order:1} h1{order:2;font-size:clamp(3.4rem,17vw,4.8rem)} .lead{order:3} .lockup{order:4;min-height:315px;margin-inline:-13px} .signals{order:5;grid-template-columns:1fr 1fr;margin-top:8px} .founders-panel{order:6;margin-top:8px} .signup-result{order:7} .waitlist{display:grid}.waitlist button{width:100%}.signal{padding:12px 10px}.signal b{font-size:1.25rem}.signup-grid{grid-template-columns:1fr 1fr}.reward-track{grid-template-columns:1fr 1fr}.milestone:last-child{grid-column:1/-1}.referral{display:grid}.referral input{min-height:40px}.product{width:112%}.classified{right:-1%;bottom:4%}.ticker{min-height:44px}.ticker-track{padding-block:11px}.socials{right:8px;gap:5px;padding-left:42px}.social-link{width:31px;height:31px}footer{gap:10px;padding:9px 0 11px;font-size:.5rem}.legal-links{gap:7px}.made{max-width:none;white-space:nowrap}.made-wide{display:none}.made-mobile{display:inline} }
+    @media (max-width:620px) { .founders-panel{padding:13px}.founders-head{align-items:flex-start}.founders-offer span{font-size:.72rem}.consent-row{display:grid} }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important} }
   </style>
 </head>
@@ -125,8 +126,7 @@
         <p class="lead reveal"><strong>Build a startup. Hire human and AI agents. Survive market chaos</strong>, all while hiding a side hustle ;)</p>
         <div class="founders-panel reveal">
           <div class="founders-head">
-            <div class="founders-offer"><b class="mono">Join the Founders’ Round</b><span>Get a Founder ID, build your valuation and vote on a real card.</span></div>
-            <a class="vote-room mono" href="/choose">Card reveal →</a>
+            <div class="founders-offer"><b class="mono">Join the Founders’ Round</b><span>Get a Founder ID, build your pre-game valuation and <a class="founders-copy-link" href="/choose">vote on which card should make the final deck</a>.</span></div>
           </div>
           <form class="waitlist" id="waitlistForm">
             <input class="honeypot" id="website" name="website" type="text" tabindex="-1" autocomplete="off" aria-label="Do not fill this field" aria-hidden="true" />
@@ -160,8 +160,8 @@
           </div>
         </section>
         <div class="signals reveal" aria-label="Game teaser">
-          <div class="signal"><b>54</b><span class="mono">Cards in the core deck</span></div>
-          <a class="signal-link" href="/market"><div class="signal"><b>LIVE</b><span class="mono">Draw a market card →</span></div></a>
+          <a class="signal-link" href="/choose"><div class="signal"><b>54</b><span class="mono">Cards in the core deck · Card reveal →</span></div></a>
+          <a class="signal-link" href="/market"><div class="signal"><b>LIVE</b><span class="mono">Try drawing a live market card for the day</span></div></a>
           <div class="signal"><b>1</b><span class="mono">Hidden hustle to finish</span></div>
           <div class="signal"><b>$1B</b><span class="mono">Portfolio needed to win</span></div>
         </div>
@@ -184,7 +184,7 @@
   </div>
   <footer class="page mono">
     <span class="legal-links">© 2026 Valuation Hallucination <a href="/terms">Terms</a> <a href="/privacy">Privacy</a></span>
-    <span class="made">Made by techies, for techies, with <b>♥</b> &amp; caffeine.</span>
+    <span class="made"><span class="made-wide">Made by techies, for techies, with <b>♥</b> &amp; caffeine.</span><span class="made-mobile">Made with <b>♥</b> for techies</span></span>
   </footer>
   <script>
     const query = new URLSearchParams(window.location.search);
