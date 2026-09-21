@@ -73,8 +73,8 @@
     .founders-copy-link { color:inherit; text-decoration:underline; text-decoration-color:rgba(255,255,255,.42); text-underline-offset:2px; transition:color .18s ease,text-decoration-color .18s ease; }
     .founders-copy-link:hover,.founders-copy-link:focus-visible { color:var(--acid); text-decoration-color:var(--acid); outline:none; }
     .honeypot { position:absolute!important; width:1px!important; height:1px!important; overflow:hidden!important; clip:rect(0 0 0 0)!important; white-space:nowrap!important; }
-    .signal-link { color:inherit; text-decoration:none; }
-    .signal-link .signal { transition:border-color .18s ease,transform .18s ease,background .18s ease; }
+    .signal-link { display:block; height:100%; color:inherit; text-decoration:none; }
+    .signal-link .signal { height:100%; transition:border-color .18s ease,transform .18s ease,background .18s ease; }
     .signal-link:hover .signal,.signal-link:focus-visible .signal { border-color:var(--acid); background:rgba(217,255,0,.09); transform:translateY(-2px); }
     .signals { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:26px; max-width:760px; }
     .signal { border:1px solid var(--line); background:rgba(255,255,255,.045); padding:16px; min-height:104px; }
@@ -126,7 +126,7 @@
         <p class="lead reveal"><strong>Build a startup. Hire human and AI agents. Survive market chaos</strong>, all while hiding a side hustle ;)</p>
         <div class="founders-panel reveal">
           <div class="founders-head">
-            <div class="founders-offer"><b class="mono">Join the Founders’ Round</b><span>Get a Founder ID, build your pre-game valuation and <a class="founders-copy-link" href="/choose">vote on which card should make the final deck</a>.</span></div>
+            <div class="founders-offer"><b class="mono">Join the Founders’ Round</b><span>Claim your Founder ID. Build your pre-game valuation. Help choose <a class="founders-copy-link" href="/choose">which card makes the final deck</a>.</span></div>
           </div>
           <form class="waitlist" id="waitlistForm">
             <input class="honeypot" id="website" name="website" type="text" tabindex="-1" autocomplete="off" aria-label="Do not fill this field" aria-hidden="true" />
@@ -160,8 +160,8 @@
           </div>
         </section>
         <div class="signals reveal" aria-label="Game teaser">
-          <a class="signal-link" href="/choose"><div class="signal"><b>54</b><span class="mono">Cards in the core deck · Card reveal →</span></div></a>
-          <a class="signal-link" href="/market"><div class="signal"><b>LIVE</b><span class="mono">Try drawing a live market card for the day</span></div></a>
+          <a class="signal-link" href="/choose"><div class="signal"><b>54</b><span class="mono">Cards in the core deck<br /><strong>Reveal &amp; vote →</strong></span></div></a>
+          <a class="signal-link" href="/market"><div class="signal"><b>LIVE</b><span class="mono">Today’s market event<br /><strong>Draw today’s card →</strong></span></div></a>
           <div class="signal"><b>1</b><span class="mono">Hidden hustle to finish</span></div>
           <div class="signal"><b>$1B</b><span class="mono">Portfolio needed to win</span></div>
         </div>
