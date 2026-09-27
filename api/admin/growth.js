@@ -2,6 +2,7 @@ import { authorized, growthDatabase, safeUrl } from "../../lib/growth.js";
 import { nextPostRecommendation, normalizedPostStatus, redditSubreddits } from "../../lib/reddit-content.js";
 import { generateRedditDraft } from "../../lib/reddit-drafts.js";
 import { loadRedditQueue, opportunityRowToPost, syncRedditOpportunities } from "../../lib/reddit-scan.js";
+import socialHandler from "../../lib/social-admin.js";
 
 const allowedStatuses = new Set(["planned", "draft", "ready", "posted", "skipped", "blocked", "archived"]);
 
@@ -92,6 +93,7 @@ async function statusAction(db, body, res) {
 }
 
 export default async function handler(req, res) {
+  if (req.query?.view === "social") return socialHandler(req, res);
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Content-Type-Options", "nosniff");
   if (!["GET", "POST", "PATCH"].includes(req.method)) {
