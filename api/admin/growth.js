@@ -142,7 +142,7 @@ export default async function handler(req, res) {
         const hash=crypto.createHash("sha256").update(token).digest("hex");
         await db.query(`INSERT INTO valuation_hallucination.reddit_feed_access (id,token_hash,created_at)
           VALUES (1,$1,NOW()) ON CONFLICT (id) DO UPDATE SET token_hash=EXCLUDED.token_hash,created_at=NOW()`,[hash]);
-        return res.status(200).json({ feed_url:"https://www.valuationhallucination.com/api/reddit-feed",
+        return res.status(200).json({ feed_url:"https://www.valuationhallucination.com/api/admin/growth?view=reddit_feed",
           username:"growth", password:token });
       }
       if (req.method === "POST" && body.action === "scan") return await scanAction(db, res);
