@@ -2,7 +2,7 @@ import { growthDatabase, notifyGrowth } from "../../lib/growth.js";
 import { baselineRedditDraft, generateRedditDraft } from "../../lib/reddit-drafts.js";
 import { scheduledPostRecommendation } from "../../lib/reddit-content.js";
 import { loadRedditQueue, syncRedditOpportunities } from "../../lib/reddit-scan.js";
-import { generateSocialDrafts, storeSocialDrafts } from "../../lib/social-drafts.js";
+import { generateReviewedSocialDrafts, storeSocialDrafts } from "../../lib/social-drafts.js";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       const day = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
       try {
         const existing = await db.query(`SELECT count(DISTINCT channel)::int AS count FROM valuation_hallucination.social_campaign_posts WHERE campaign_day=$1`, [day]);
-        if (existing.rows[0].count < 4) await storeSocialDrafts(db, day, await generateSocialDrafts(day));
+        if (existing.rows[0].count < 4) await storeSocialDrafts(db, day, await generateReviewedSocialDrafts(day), "Current event", "scout → writer → editor");
       } catch (error) { console.error("daily_social_draft_error", error.message); }
     }
     let scanErrors = [];
