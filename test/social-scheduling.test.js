@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { scheduleVoholabsPost } from '../lib/voholabs.js';
-import clickHandler from '../api/social-click.js';
+import clickHandler from '../api/events.js';
 
 test('Voholabs X schedule carries a post-specific attribution link', async () => {
   const oldFetch = globalThis.fetch;
@@ -17,7 +17,7 @@ test('Voholabs X schedule carries a post-specific attribution link', async () =>
     const id = await scheduleVoholabsPost({ id:3,channel:'x', caption:'Startups are weird. Visit valuationhallucination.com',scheduled_at:'2026-09-29T16:00:00Z' });
     assert.equal(id,'provider-post-1');
     assert.equal(body.type,'schedule');
-    assert.match(body.posts[0].value[0].content,/api\/social-click\?id=3/);
+    assert.match(body.posts[0].value[0].content,/api\/events\?social=3/);
     assert.doesNotMatch(body.posts[0].value[0].content,/Visit valuationhallucination\.com/);
   } finally {
     globalThis.fetch=oldFetch;
@@ -30,6 +30,6 @@ test('tracking redirect rejects malformed post ID', async () => {
   const calls=[];
   const res={setHeader(){return this},status(n){calls.push(n);return this},end(){return this},redirect(n,url){calls.push([n,url]);return this}};
   // The endpoint uses the configured production database; exercise invalid input before a query.
-  await clickHandler({method:'GET',query:{id:'bad'}},res);
+  await clickHandler({method:'GET',query:{social:'bad'}},res);
   assert.deepEqual(calls,[400]);
 });
