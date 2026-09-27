@@ -1,5 +1,3 @@
-import crypto from "node:crypto";
-import redditFeed from "../../lib/reddit-feed.js";
 import { authorized, growthDatabase, safeUrl } from "../../lib/growth.js";
 import { nextPostRecommendation, normalizedPostStatus, redditSubreddits } from "../../lib/reddit-content.js";
 import { generateRedditDraft } from "../../lib/reddit-drafts.js";
@@ -114,7 +112,6 @@ async function statusAction(db, body, res) {
 }
 
 export default async function handler(req, res) {
-  if (req.query?.view === "reddit_feed") return redditFeed(req, res);
   if (req.query?.view === "brief") return socialBrief(req, res);
   if (req.query?.view === "asset") return socialAsset(req, res);
   if (req.query?.view === "submit") return socialIntake(req, res);
@@ -136,14 +133,6 @@ export default async function handler(req, res) {
         body = requestBody(req);
       } catch {
         return res.status(400).json({ detail: "Invalid request." });
-      }
-      if (req.method === "POST" && body.action === "create_reddit_feed_access") {
-        const token=crypto.randomBytes(32).toString("base64url");
-        const hash=crypto.createHash("sha256").update(token).digest("hex");
-        await db.query(`INSERT INTO valuation_hallucination.reddit_feed_access (id,token_hash,created_at)
-          VALUES (1,$1,NOW()) ON CONFLICT (id) DO UPDATE SET token_hash=EXCLUDED.token_hash,created_at=NOW()`,[hash]);
-        return res.status(200).json({ feed_url:"https://www.valuationhallucination.com/api/admin/growth?view=reddit_feed",
-          username:"growth", password:token });
       }
       if (req.method === "POST" && body.action === "scan") return await scanAction(db, res);
       if (req.method === "POST" && body.action === "draft") return await draftAction(db, body, res);
@@ -251,9 +240,7 @@ export default async function handler(req, res) {
       screened_out: 0,
       errors: []
     };
-    const feedAccess = await db.query("SELECT 1 FROM valuation_hallucination.reddit_feed_access WHERE id=1");
     return res.status(200).json({
-      reddit_feed_configured: feedAccess.rowCount > 0,
       generated_at: new Date().toISOString(),
       totals: totals.rows[0],
       funnel: {
