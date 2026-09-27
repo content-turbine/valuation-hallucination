@@ -18,6 +18,11 @@ export default async function handler(req, res) {
       url.searchParams.set('utm_medium', 'organic');
       url.searchParams.set('utm_campaign', 'valuation-hallucination-launch');
       url.searchParams.set('utm_content', `social-${id}`);
+      await recordEvent(db, 'social_click', {
+        utm_source: post.channel, utm_medium: 'organic', utm_campaign: 'valuation-hallucination-launch',
+        utm_content: `social-${id}`, landing_path: url.pathname,
+        referrer_url: req.headers.referer || ''
+      });
       return res.redirect(302, url.toString());
     } catch (error) { console.error('social_click_error', error.message); return res.status(500).end(); }
   }
