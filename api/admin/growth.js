@@ -3,6 +3,7 @@ import { nextPostRecommendation, normalizedPostStatus, redditSubreddits } from "
 import { generateRedditDraft } from "../../lib/reddit-drafts.js";
 import { loadRedditQueue, opportunityRowToPost, syncRedditOpportunities } from "../../lib/reddit-scan.js";
 import socialHandler from "../../lib/social-admin.js";
+import socialIntake from "../../lib/social-intake.js";
 
 const allowedStatuses = new Set(["planned", "draft", "ready", "posted", "skipped", "blocked", "archived"]);
 
@@ -93,6 +94,7 @@ async function statusAction(db, body, res) {
 }
 
 export default async function handler(req, res) {
+  if (req.query?.view === "submit") return socialIntake(req, res);
   if (req.query?.view === "social") return socialHandler(req, res);
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Content-Type-Options", "nosniff");
