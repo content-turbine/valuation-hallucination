@@ -26,7 +26,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ detail: "Method not allowed." });
   }
   try {
-    const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
+    const body = Buffer.isBuffer(req.body) ? JSON.parse(req.body.toString("utf8") || "{}")
+      : typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
+    // Some browsers send beacon payloads as raw buffers. Same-origin Referer
+    // preserves campaign tags for a landing page even when its body is absent.
+    try {
+      const ref = new URL(req.headers.referer || "");
+      if (["valuationhallucination.com", "www.valuationhallucination.com"].includes(ref.hostname)) {
+        for (const name of ["utm_source","utm_medium","utm_campaign","utm_content"])
+          if (!body[name] && ref.searchParams.get(name)) body[name] = ref.searchParams.get(name);
+      }
+    } catch { /* No referrer is normal. */ }
     const eventName = safeEventName(body.event_name);
     if (!eventName || eventName === "waitlist_signup" || eventName === "referral_qualified" || eventName === "milestone_unlocked") {
       return res.status(400).json({ detail: "Unsupported client event." });
