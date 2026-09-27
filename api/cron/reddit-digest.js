@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     `), loadRedditQueue(db)]);
     const preferred = scheduledPostRecommendation(result.rows, new Date(), queue);
     const candidates = [preferred, ...queue].filter((item, index, all) =>
-      item && !item.draft_title && !["approved","ready","scheduled","posted","archived","blocked","skipped"].includes(item.status) &&
+      item && (!item.draft_title || (item.status==="draft" && !String(item.llm_model||"").includes("grounded-v2"))) && !["approved","ready","scheduled","posted","archived","blocked","skipped"].includes(item.status) &&
       all.findIndex(other => other?.id === item.id) === index).slice(0, 6);
     let post = null, draft = null;
     for (const candidate of candidates) {
