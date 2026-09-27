@@ -202,9 +202,9 @@
         const stageName=stage(r);
         const when=r.scheduled_at?localTime(r.scheduled_at):'';
         return `<article class="queue-card ${r.status==='posted'?'posted':r.status==='archived'?'archived':''}" data-post-id="${esc(r.id)}">
-          <span class="tag">r/${esc(r.subreddit)}</span>${tags}<span class="tag">${esc(r.status)}</span><span class="tag">signal ${esc(r.score)}</span>
+          <span class="tag">r/${esc(r.subreddit)}</span>${tags}<span class="tag">${esc(r.status)}</span><span class="tag" title="Priority score combines topic relevance, freshness and feed position; it is not post performance.">Priority ${esc(r.score)}/100</span>
           <p class="updated mono">Found ${esc(sourceDate)} · <a href="${esc(r.sourceUrl)}" target="_blank" rel="noopener">Open source discussion ↗</a></p>
-          <b>${esc(r.sourceTitle)}</b><p class="screening"><strong>Why it qualified (${esc(r.contextScore)}/100):</strong> ${esc(reasons)}</p><p>${esc(r.angle)}</p><p><strong>Link guidance:</strong> ${esc(r.cta)}</p>
+          <b>${esc(r.sourceTitle)}</b><details><summary>Read source context</summary><p>${esc(r.sourceExcerpt||"No body captured from Reddit; draft generation will require a fuller source.")}</p></details><p class="screening"><strong>Why it qualified (${esc(r.contextScore)}/100):</strong> ${esc(reasons)}</p><p>${esc(r.angle)}</p><p><strong>Link guidance:</strong> ${esc(r.cta)}</p>
           ${hasDraft?`<div class="draft-field"><label>Draft title</label><textarea class="draft-title comment">${esc(r.draft_title)}</textarea></div>
           <div class="draft-field"><label>Draft post</label><textarea class="draft-body">${esc(String(r.draft_body).replaceAll('{{tracked_link}}',trackedLink(r)))}</textarea></div>
           <div class="draft-field"><label>First comment</label><textarea class="draft-comment comment">${esc(String(r.first_comment||'').replaceAll('{{tracked_link}}',trackedLink(r)))}</textarea></div>`:'<p class="explain">Generate a draft from this live discussion, then review it before approving.</p>'}
