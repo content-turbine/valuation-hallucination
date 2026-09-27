@@ -276,7 +276,7 @@
       $('leaders').innerHTML=data.referral_leaders.map((r)=>`<tr><td>${esc(r.founder_id)}</td><td>${esc(r.email)}</td><td>${esc(r.origin||'Original site / direct')}</td><td>${r.referral_count}</td></tr>`).join('')||'<tr><td colspan="4">No qualified referrals yet.</td></tr>';
       $('recent').innerHTML=data.recent_founders.map((r)=>`<tr><td>${esc(r.founder_id)}</td><td>${esc(r.email)}</td><td>${esc(r.origin||'Original site / direct')}</td><td>${esc(r.content||'—')}</td><td>${r.referral_count}</td><td>${new Date(r.created_at).toLocaleDateString()}</td></tr>`).join('');
       renderQueue(data);
-      await loadSocial();
+      try { await loadSocial(); } catch(error) { $('socialConnection').textContent=error.message; }
     }
     $('accessForm').addEventListener('submit',async(e)=>{e.preventDefault();adminToken=$('token').value.trim();sessionStorage.setItem('vh_growth_token',adminToken);try{await load();}catch(error){$('gateError').textContent=error.message;}});
     $('refresh').addEventListener('click',()=>load().catch((e)=>alert(e.message)));
@@ -286,7 +286,7 @@
     $('showArchived').addEventListener('change',()=>load().catch((e)=>alert(e.message)));
     $('scanReddit').addEventListener('click',async()=>{const button=$('scanReddit');button.disabled=true;button.textContent='Scanning…';try{await api('/api/admin/growth',{method:'POST',body:JSON.stringify({action:'scan'})});await load();}catch(e){alert(e.message);}finally{button.disabled=false;button.textContent='Scan Reddit now';}});
     $('download').addEventListener('click',async()=>{try{const response=await api('/api/admin/leads');const blob=await response.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`valuation-hallucination-leads-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);}catch(e){alert(e.message);}});
-    if(adminToken){load().catch(()=>{sessionStorage.removeItem('vh_growth_token');adminToken='';});}
+    if(adminToken){load().catch(error=>{if(error.message==='That token was not accepted.'){sessionStorage.removeItem('vh_growth_token');adminToken='';} $('gateError').textContent=error.message;});}
   </script>
 </body>
 </html>
