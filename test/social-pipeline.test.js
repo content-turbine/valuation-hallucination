@@ -25,10 +25,10 @@ test('scout, writer and editor hand off sourced drafts to one review queue', asy
     assert.equal(drafts.length, 4);
     assert.equal(drafts[0].source_url, 'https://example.com/news');
     const writes = [];
-    await storeSocialDrafts({ query: async (sql, params) => { writes.push({sql,params}); return {rowCount:1,rows:[{id:writes.length}]}; } }, '2026-09-27', drafts);
-    assert.equal(writes.length,4);
-    assert.equal(writes[0].params[6], 'https://example.com/news');
-    assert.match(writes[0].sql, /America\/Toronto/);
+    await storeSocialDrafts({ query: async (sql, params) => { writes.push({sql,params}); return sql.startsWith('INSERT') ? {rowCount:1,rows:[{id:writes.length}]} : {rowCount:0,rows:[]}; } }, '2026-09-27', drafts);
+    assert.equal(writes.length,8);
+    assert.equal(writes[1].params[6], 'https://example.com/news');
+    assert.match(writes[1].sql, /America\/Toronto/);
   } finally {
     globalThis.fetch = originalFetch;
     if (originalKey === undefined) delete process.env.PERPLEXITY_API_KEY;
