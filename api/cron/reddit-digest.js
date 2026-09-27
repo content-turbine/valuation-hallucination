@@ -1,5 +1,5 @@
 import { growthDatabase, notifyGrowth } from "../../lib/growth.js";
-import { baselineRedditDraft, generateRedditDraft } from "../../lib/reddit-drafts.js";
+import { generateRedditDraft } from "../../lib/reddit-drafts.js";
 import { scheduledPostRecommendation } from "../../lib/reddit-content.js";
 import { loadRedditQueue, syncRedditOpportunities } from "../../lib/reddit-scan.js";
 import { generateReviewedSocialDrafts, storeSocialDrafts } from "../../lib/social-drafts.js";
@@ -39,11 +39,33 @@ export default async function handler(req, res) {
       GROUP BY source, campaign, content, subreddit
       ORDER BY signups DESC, views DESC LIMIT 20
     `), loadRedditQueue(db)]);
-    const post = scheduledPostRecommendation(result.rows, new Date(), queue);
+    const preferred = scheduledPostRecommendation(result.rows, new Date(), queue);
+    const candidates = [preferred, ...queue].filter((item, index, all) =>
+      item && !item.draft_title && !["approved","ready","scheduled","posted","archived","blocked","skipped"].includes(item.status) &&
+      all.findIndex(other => other?.id === item.id) === index).slice(0, 6);
+    let post = null, draft = null;
+    for (const candidate of candidates) {
+      try {
+        draft = await generateRedditDraft(candidate);
+        post = candidate;
+        break;
+      } catch (error) {
+        console.error("reddit_digest_draft_skipped", candidate.id, error.message);
+      }
+    }
     if (!post) {
-      await notifyGrowth("⚠️ Reddit scan found no current publishing opportunities. Open the growth console and run Scan Reddit now.");
+      await notifyGrowth("No grounded Reddit draft today. The current discussions did not pass source and editorial checks. Review /growth for new opportunities.");
       return res.status(200).json({ ok: true, post_id: null, scan_errors: scanErrors });
     }
+    await db.query(
+      `INSERT INTO valuation_hallucination.reddit_post_workflow
+        (post_id, status, draft_title, draft_body, first_comment, llm_model, updated_at)
+       VALUES ($1, 'draft', $2, $3, $4, $5, NOW())
+       ON CONFLICT (post_id) DO UPDATE SET draft_title=EXCLUDED.draft_title,
+         draft_body=EXCLUDED.draft_body, first_comment=EXCLUDED.first_comment,
+         llm_model=EXCLUDED.llm_model, updated_at=NOW()`,
+      [post.id, draft.title, draft.body, draft.first_comment || null, draft.model]
+    );
     const params = new URLSearchParams({
       utm_source: "reddit",
       utm_medium: "organic",
@@ -52,33 +74,11 @@ export default async function handler(req, res) {
       subreddit: post.subreddit
     });
     const base = process.env.PUBLIC_SITE_URL || "https://www.valuationhallucination.com";
-    let draft = post.draft_title ? {
-      title: post.draft_title,
-      body: post.draft_body,
-      first_comment: post.first_comment || "",
-      model: post.llm_model || "saved"
-    } : baselineRedditDraft(post);
-    if (process.env.PERPLEXITY_API_KEY && !post.draft_title) {
-      try {
-        draft = await generateRedditDraft(post);
-        await db.query(
-          `INSERT INTO valuation_hallucination.reddit_post_workflow
-            (post_id, status, draft_title, draft_body, first_comment, llm_model, updated_at)
-           VALUES ($1, 'draft', $2, $3, $4, $5, NOW())
-           ON CONFLICT (post_id) DO UPDATE SET draft_title = EXCLUDED.draft_title,
-             draft_body = EXCLUDED.draft_body, first_comment = EXCLUDED.first_comment,
-             llm_model = EXCLUDED.llm_model, updated_at = NOW()`,
-          [post.id, draft.title, draft.body, draft.first_comment || null, draft.model]
-        );
-      } catch (error) {
-        console.error("reddit_digest_ai_error", error.message);
-      }
-    }
     const trackedLink = `${base}/?${params}`;
     const title = String(draft.title || "").replaceAll("{{tracked_link}}", trackedLink);
     const body = String(draft.body || "").replaceAll("{{tracked_link}}", trackedLink);
     const firstComment = String(draft.first_comment || "").replaceAll("{{tracked_link}}", trackedLink);
-    await notifyGrowth(`🧠 *Reddit draft for human review*\n*r/${post.subreddit}*\nSource signal: ${post.sourceUrl}\n\n*${title}*\n\n${body}\n${firstComment ? `\nFirst comment:\n${firstComment}\n` : ""}\nTracked link (only if community rules permit): ${trackedLink}\nWhy this test: ${post.reason}\n\nNothing has been posted automatically.`);
+    await notifyGrowth(`🧠 *Reddit draft for human review*\n*r/${post.subreddit}*\nSource discussion: ${post.sourceUrl}\nSpecific point: ${draft.source_point}\nGame connection: ${draft.bridge}\n\n*${title}*\n\n${body}\n${firstComment ? `\nFirst comment:\n${firstComment}\n` : ""}\nTracked link (only if community rules permit): ${trackedLink}\nWhy this test: ${post.reason}\n\nNothing has been posted automatically.`);
     return res.status(200).json({ ok: true, post_id: post.id, subreddit: post.subreddit });
   } catch (error) {
     console.error("reddit_digest_error", error.message);
