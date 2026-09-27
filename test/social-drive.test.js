@@ -44,3 +44,19 @@ test('a finished dated visual creates a review item even without a draft', async
     else process.env.SOCIAL_DRIVE_SERVICE_ACCOUNT_JSON = previousKey;
   }
 });
+
+test('Drive 403 reports whether its API needs enabling', async () => {
+  const previousKey = process.env.SOCIAL_DRIVE_SERVICE_ACCOUNT_JSON;
+  const previousFetch = globalThis.fetch;
+  const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+  process.env.SOCIAL_DRIVE_SERVICE_ACCOUNT_JSON = JSON.stringify({type:'service_account',client_email:'review@example.iam.gserviceaccount.com',private_key:privateKey.export({type:'pkcs8',format:'pem'})});
+  globalThis.fetch = async url => String(url).includes('oauth2.googleapis.com')
+    ? {ok:true,json:async()=>({access_token:'test'})}
+    : {ok:false,status:403,json:async()=>({error:{errors:[{reason:'accessNotConfigured'}]}})};
+  try { await assert.rejects(syncSocialDriveAssets({query:()=>{throw new Error('must not write');}}),/Enable the Google Drive API/); }
+  finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.SOCIAL_DRIVE_SERVICE_ACCOUNT_JSON;
+    else process.env.SOCIAL_DRIVE_SERVICE_ACCOUNT_JSON = previousKey;
+  }
+});
