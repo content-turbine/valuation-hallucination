@@ -42,6 +42,8 @@ test('editor rejection does not produce drafts', async () => {
   const replies = [
     { event: 'A startup launched a new hiring tool', event_date: '2026-09-26', source_url: 'https://example.com/news', angle: 'Hiring' },
     { posts: ['instagram','tiktok','x','facebook'].map(channel => ({channel,caption:'Draft',asset_brief:'Sketch'})) },
+    { approved: false, reason: 'Premature reveal' },
+    { posts: ['instagram','tiktok','x','facebook'].map(channel => ({channel,caption:'Revised draft',asset_brief:'Sketch'})) },
     { approved: false, reason: 'Premature reveal' }
   ];
   process.env.PERPLEXITY_API_KEY = 'test';
