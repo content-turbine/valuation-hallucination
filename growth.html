@@ -112,7 +112,7 @@
     }
     const socialApi = async (options={}) => (await api('/api/admin/growth?view=social',options)).json();
     const localTime = (value) => {if(!value)return '';const date=new Date(value);return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,16);};
-    const socialLink = (post) => `${location.origin}/api/social-click?id=${post.id}`;
+    const socialLink = (post) => `${location.origin}/api/events?social=${post.id}`;
     const mediaPreview = (url) => {
       if (!url || !/^https:\/\//i.test(url)) return '<p class="updated">No image or video file attached yet. The visual brief above is an instruction for the creator.</p>';
       const safe=esc(url);
