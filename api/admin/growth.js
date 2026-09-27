@@ -7,7 +7,7 @@ import socialIntake from "../../lib/social-intake.js";
 import socialBrief from "../../lib/social-brief.js";
 import socialAsset from "../../lib/social-asset.js";
 
-const allowedStatuses = new Set(["planned", "draft", "ready", "posted", "skipped", "blocked", "archived"]);
+const allowedStatuses = new Set(["planned", "draft", "ready", "approved", "scheduled", "posted", "skipped", "blocked", "archived"]);
 
 function requestBody(req) {
   if (typeof req.body !== "string") return req.body || {};
@@ -37,13 +37,14 @@ async function scanAction(db, res) {
 async function draftAction(db, body, res) {
   const opportunity = await db.query(
     `SELECT o.*, w.status, w.reddit_url, w.draft_title, w.draft_body,
-       w.first_comment, w.llm_model, w.posted_at, w.updated_at
+       w.first_comment, w.llm_model, w.posted_at, w.scheduled_at, w.updated_at
      FROM valuation_hallucination.reddit_opportunities o
      LEFT JOIN valuation_hallucination.reddit_post_workflow w ON w.post_id = o.post_id
      WHERE o.post_id = $1`,
     [String(body.post_id || "").slice(0, 120)]
   );
   if (!opportunity.rowCount) return res.status(404).json({ detail: "Reddit opportunity was not found." });
+  if (["scheduled", "posted"].includes(opportunity.rows[0].status)) return res.status(409).json({ detail: "Return this post to review before regenerating its copy." });
   const post = opportunityRowToPost(opportunity.rows[0]);
   const draft = await generateRedditDraft(post, body.instructions);
   await db.query(
@@ -69,28 +70,43 @@ async function statusAction(db, body, res) {
   if (!allowedStatuses.has(requestedStatus)) return res.status(400).json({ detail: "Invalid post status." });
   const status = normalizedPostStatus(requestedStatus);
   const redditUrl = body.reddit_url ? safeUrl(body.reddit_url, 800) : "";
-  if (redditUrl && !/^https:\/\/(?:www\.|old\.)?reddit\.com\//i.test(redditUrl)) {
+  if (redditUrl && !/^https:\/\/(?:www\.|old\.)?reddit\.com\//i.test(redditUrl))
     return res.status(400).json({ detail: "Use the published Reddit post URL." });
+  if (status === 'posted' && !redditUrl)
+    return res.status(400).json({ detail: "Add the published Reddit URL before marking it posted." });
+  let scheduledAt = null;
+  if (status === 'scheduled') {
+    scheduledAt = new Date(body.scheduled_at || '');
+    if (Number.isNaN(scheduledAt.getTime()) || scheduledAt.getTime() <= Date.now())
+      return res.status(400).json({ detail: "Choose a future posting time before scheduling." });
   }
-  const exists = await db.query(
-    `SELECT 1 FROM valuation_hallucination.reddit_opportunities WHERE post_id = $1`,
-    [postId]
+  const opportunity = await db.query(
+    `SELECT o.post_id, w.draft_title, w.draft_body
+       FROM valuation_hallucination.reddit_opportunities o
+       LEFT JOIN valuation_hallucination.reddit_post_workflow w ON w.post_id=o.post_id
+       WHERE o.post_id=$1`, [postId]
   );
-  if (!exists.rowCount) return res.status(404).json({ detail: "Reddit opportunity was not found." });
+  if (!opportunity.rowCount) return res.status(404).json({ detail: "Reddit opportunity was not found." });
+  const title = body.draft_title === undefined ? opportunity.rows[0].draft_title : String(body.draft_title).trim().slice(0, 240);
+  const draftBody = body.draft_body === undefined ? opportunity.rows[0].draft_body : String(body.draft_body).trim().slice(0, 12000);
+  const comment = body.first_comment === undefined ? null : String(body.first_comment).trim().slice(0, 2000);
+  if (['approved', 'ready', 'scheduled'].includes(status) && (!title || !draftBody))
+    return res.status(400).json({ detail: "Generate and review the Reddit copy before approving or scheduling." });
   const result = await db.query(
     `INSERT INTO valuation_hallucination.reddit_post_workflow
-      (post_id, status, reddit_url, posted_at, updated_at)
-     VALUES ($1, $2, $3, CASE WHEN $2 = 'posted' THEN NOW() ELSE NULL END, NOW())
+      (post_id, status, reddit_url, posted_at, scheduled_at, draft_title, draft_body, first_comment, updated_at)
+     VALUES ($1, $2, $3, CASE WHEN $2='posted' THEN NOW() ELSE NULL END, $4, $5, $6, $7, NOW())
      ON CONFLICT (post_id) DO UPDATE SET
-       status = EXCLUDED.status,
-       reddit_url = COALESCE(NULLIF(EXCLUDED.reddit_url, ''), valuation_hallucination.reddit_post_workflow.reddit_url),
-       posted_at = CASE
-         WHEN EXCLUDED.status = 'posted' THEN COALESCE(valuation_hallucination.reddit_post_workflow.posted_at, NOW())
-         ELSE NULL
-       END,
-       updated_at = NOW()
-     RETURNING post_id, status, reddit_url, posted_at, updated_at`,
-    [postId, status, redditUrl || null]
+       status=EXCLUDED.status,
+       reddit_url=EXCLUDED.reddit_url,
+       posted_at=CASE WHEN EXCLUDED.status='posted' THEN COALESCE(valuation_hallucination.reddit_post_workflow.posted_at,NOW()) ELSE NULL END,
+       scheduled_at=EXCLUDED.scheduled_at,
+       draft_title=COALESCE(EXCLUDED.draft_title,valuation_hallucination.reddit_post_workflow.draft_title),
+       draft_body=COALESCE(EXCLUDED.draft_body,valuation_hallucination.reddit_post_workflow.draft_body),
+       first_comment=COALESCE(EXCLUDED.first_comment,valuation_hallucination.reddit_post_workflow.first_comment),
+       updated_at=NOW()
+     RETURNING post_id,status,reddit_url,posted_at,scheduled_at,updated_at`,
+    [postId, status, status === 'posted' ? redditUrl : null, scheduledAt, title, draftBody, comment]
   );
   return res.status(200).json(result.rows[0]);
 }
