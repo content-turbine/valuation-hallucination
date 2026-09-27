@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS valuation_hallucination.social_campaign_posts (
   theme TEXT NOT NULL DEFAULT '',
   caption TEXT NOT NULL DEFAULT '',
   asset_brief TEXT NOT NULL DEFAULT '',
+  asset_url TEXT NOT NULL DEFAULT '',
   media_url TEXT NOT NULL DEFAULT '',
   destination_url TEXT NOT NULL DEFAULT 'https://valuationhallucination.com/',
   scheduled_at TIMESTAMPTZ,
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS valuation_hallucination.social_campaign_posts (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE valuation_hallucination.social_campaign_posts
+  ADD COLUMN IF NOT EXISTS asset_url TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS source_url TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS rationale TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS submission_key TEXT;
