@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     if (process.env.PERPLEXITY_API_KEY) {
       const day = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
       try {
-        const existing = await db.query(`SELECT count(DISTINCT channel)::int AS count FROM valuation_hallucination.social_campaign_posts WHERE campaign_day=$1`, [day]);
+        const existing = await db.query(`SELECT count(DISTINCT channel)::int AS count FROM valuation_hallucination.social_campaign_posts WHERE campaign_day=$1 AND TRIM(caption)<>''`, [day]);
         if (existing.rows[0].count < 4) await storeSocialDrafts(db, day, await generateReviewedSocialDrafts(day), "Current event", "scout → writer → editor");
       } catch (error) { console.error("daily_social_draft_error", error.message); }
     }
