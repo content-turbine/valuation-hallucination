@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS valuation_hallucination.social_campaign_posts (
   external_post_id TEXT,
   error_message TEXT,
   approved_at TIMESTAMPTZ,
+  archived_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -24,7 +25,8 @@ ALTER TABLE valuation_hallucination.social_campaign_posts
   ADD COLUMN IF NOT EXISTS asset_url TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS source_url TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS rationale TEXT NOT NULL DEFAULT '',
-  ADD COLUMN IF NOT EXISTS submission_key TEXT;
+  ADD COLUMN IF NOT EXISTS submission_key TEXT,
+  ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
 CREATE UNIQUE INDEX IF NOT EXISTS social_campaign_submission_key_idx
   ON valuation_hallucination.social_campaign_posts (submission_key);
 CREATE INDEX IF NOT EXISTS social_campaign_posts_day_idx
