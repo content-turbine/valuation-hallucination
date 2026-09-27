@@ -42,10 +42,8 @@
       <div id="panel-reddit" class="tab-panel" role="tabpanel" aria-labelledby="tab-reddit" hidden>
       <p class="tab-intro">Find relevant conversations, draft thoughtful replies, and track what you post.</p>
       <div class="tab-actions"><span class="mono updated" id="scanStatus">Reddit scan status</span><button class="secondary" id="scanReddit">Scan Reddit now</button></div>
-      <div class="grid">
-        <section class="panel"><h2>Next recommended post</h2><div class="recommendation" id="nextPost"></div></section>
-        <section class="panel"><h2>Live Reddit opportunities</h2><p class="explain">Only discussions that pass contextual screening enter this queue. Review the community's rules before posting; nothing is posted automatically.</p><div class="queue-tools"><select id="queueSort" aria-label="Sort posts"><option value="priority">Sort: editorial priority</option><option value="channel">Sort: channel A–Z</option><option value="relevance">Sort: relevance</option><option value="newest">Sort: newest</option></select><select id="queueChannel" aria-label="Filter by channel"><option value="all">All channels</option></select><select id="queueTag" aria-label="Filter by strategy tag"><option value="all">All tags</option><option value="awareness">Awareness</option><option value="credible">Credible</option><option value="pre-launch">Pre-launch</option><option value="launch">Launch</option></select><label><input id="showArchived" type="checkbox" /> Show archived</label></div><p class="updated mono" id="queueSummary"></p><div id="queue"></div></section>
-      </div>
+      <div class="social-funnel" id="redditFunnel" aria-label="Reddit post stages"></div>
+      <section class="panel"><h2>Reddit review</h2><p class="explain">Review a live discussion and its draft, then approve it and choose a manual posting time. Scheduled posts are reminders here; Reddit is not published automatically.</p><div class="queue-tools"><select id="queueSort" aria-label="Sort posts"><option value="priority">Sort: editorial priority</option><option value="channel">Sort: channel A–Z</option><option value="relevance">Sort: relevance</option><option value="newest">Sort: newest</option></select><select id="queueChannel" aria-label="Filter by channel"><option value="all">All channels</option></select><select id="queueTag" aria-label="Filter by strategy tag"><option value="all">All tags</option><option value="awareness">Awareness</option><option value="credible">Credible</option><option value="pre-launch">Pre-launch</option><option value="launch">Launch</option></select><label><input id="showArchived" type="checkbox" /> Include archived</label></div><p class="updated mono" id="queueSummary"></p><div id="queue"></div></section>
       </div>
       <div id="panel-results" class="tab-panel" role="tabpanel" aria-labelledby="tab-results" hidden>
       <p class="tab-intro">See which channels and campaigns bring visitors, founders, and referrals.</p>
@@ -67,6 +65,7 @@
     let dashboardData = null;
     let socialData = null;
     let socialFilter = 'review';
+    let redditStage = 'review';
     const $ = (id) => document.getElementById(id);
     function selectTab(name) {
       for (const tab of document.querySelectorAll('.tabs [role="tab"]')) {
@@ -182,57 +181,83 @@
     $('socialPosts').addEventListener('click',async e=>{const button=e.target.closest('button');if(!button)return;const card=button.closest('.social-item'),id=Number(card.dataset.socialId),post=socialData.posts.find(p=>p.id===id);if(button.classList.contains('s-archive')||button.classList.contains('s-restore')){button.disabled=true;try{await socialApi({method:'PATCH',body:JSON.stringify({action:button.classList.contains('s-archive')?'archive':'restore',id})});await loadSocial();}catch(error){alert(error.message);button.disabled=false;}return;}if(button.classList.contains('s-link')){try{await copySocialLink(socialLink(post));button.textContent='Copied!';setTimeout(()=>{if(button.isConnected)button.textContent='Copy tracking link';},2500);}catch(error){selectTrackingLink(button);}return;}if(button.classList.contains('s-schedule')){const input=card.querySelector('.s-time');if(!input.value||new Date(input.value).getTime()<Date.now()+5*60000){alert('Choose a posting time at least five minutes from now.');input.focus();return;}button.disabled=true;try{if(new Date(input.value).toISOString()!==new Date(post.scheduled_at).toISOString()){const read=(selector)=>card.querySelector(selector).value.trim();await socialApi({method:'PATCH',body:JSON.stringify({action:'edit',id,campaign_day:read('.s-day'),channel:read('.s-channel'),theme:read('.s-theme'),caption:read('.s-caption'),asset_brief:read('.s-brief'),asset_url:read('.s-asset'),media_url:read('.s-media'),destination_url:read('.s-destination'),scheduled_at:new Date(input.value).toISOString()})});await socialApi({method:'PATCH',body:JSON.stringify({action:'review',id,status:'approved'})});}await socialApi({method:'PATCH',body:JSON.stringify({action:'schedule',id})});await loadSocial();}catch(error){alert(error.message);await loadSocial();}return;}const status=button.classList.contains('s-approve')?'approved':'changes_requested';const field=(selector)=>card.querySelector(selector).value.trim();const payload={action:'edit',id,campaign_day:field('.s-day'),channel:field('.s-channel'),theme:field('.s-theme'),caption:field('.s-caption'),asset_brief:field('.s-brief'),asset_url:field('.s-asset'),media_url:field('.s-media'),destination_url:field('.s-destination'),scheduled_at:field('.s-time')?new Date(field('.s-time')).toISOString():null};button.disabled=true;try{await socialApi({method:'PATCH',body:JSON.stringify(payload)});if(!button.classList.contains('s-save'))await socialApi({method:'PATCH',body:JSON.stringify({action:'review',id,status})});await loadSocial();}catch(error){alert(error.message);button.disabled=false;}});
     function renderQueue(data) {
       const channel=$('queueChannel').value,tag=$('queueTag').value,sort=$('queueSort').value;
-      const posts=data.reddit_queue.filter((post)=>(channel==='all'||post.subreddit===channel)&&(tag==='all'||(post.tags||[]).includes(tag)));
-      posts.sort((a,b)=>{
-        if(sort==='channel') return a.subreddit.localeCompare(b.subreddit)||b.score-a.score;
-        if(sort==='relevance') return (b.contextScore||0)-(a.contextScore||0)||b.score-a.score;
-        if(sort==='newest') return Date.parse(b.sourcePublishedAt||0)-Date.parse(a.sourcePublishedAt||0);
+      const posts=data.reddit_queue.filter(post=>(channel==='all'||post.subreddit===channel)&&(tag==='all'||(post.tags||[]).includes(tag)));
+      const stage=post=>post.status==='archived'?'archived':['approved','ready'].includes(post.status)?'approved':['scheduled','posted'].includes(post.status)?'scheduled':'review';
+      const available=posts.filter(post=>post.status!=='archived');
+      const steps=[['review','Needs review','Review the draft'],['approved','Approved','Choose a posting time'],['scheduled','Scheduled','Manual posting plan']];
+      $('redditFunnel').innerHTML=steps.map(([key,name,description])=>{const count=available.filter(post=>stage(post)===key).length;return `<button type="button" class="funnel-step" data-reddit-stage="${key}" aria-pressed="${redditStage===key}"><strong>${count}</strong><span>${name}</span><small>${description}</small><div class="funnel-track"><div class="funnel-fill" style="width:${available.length?Math.round(count/available.length*100):0}%"></div></div></button>`}).join('');
+      const visible=posts.filter(post=>stage(post)===redditStage||(redditStage==='review'&&$('showArchived').checked&&stage(post)==='archived'));
+      visible.sort((a,b)=>{
+        if(sort==='channel')return a.subreddit.localeCompare(b.subreddit)||b.score-a.score;
+        if(sort==='relevance')return (b.contextScore||0)-(a.contextScore||0)||b.score-a.score;
+        if(sort==='newest')return Date.parse(b.sourcePublishedAt||0)-Date.parse(a.sourcePublishedAt||0);
         return 0;
       });
-      $('queueSummary').textContent=`Showing ${posts.length} of ${data.reddit_queue.length} screened opportunities`;
-      if (!posts.length) {
-        $('queue').innerHTML='<p class="error">No posts match these filters. Change the filters or run “Scan Reddit now.”</p>';
-        return;
-      }
-      $('queue').innerHTML=posts.map((r)=>{
+      $('queueSummary').textContent=`${({review:'Needs review',approved:'Approved',scheduled:'Scheduled'})[redditStage]} · ${visible.length} posts`;
+      $('queue').innerHTML=visible.map(r=>{
         const hasDraft=Boolean(r.draft_title&&r.draft_body);
         const sourceDate=r.sourcePublishedAt?new Date(r.sourcePublishedAt).toLocaleString():'recently';
-        const tags=(r.tags||[]).map((item)=>`<span class="tag ${esc(item)}">${esc(item)}</span>`).join('');
+        const tags=(r.tags||[]).map(item=>`<span class="tag ${esc(item)}">${esc(item)}</span>`).join('');
         const reasons=(r.relevanceReasons||[]).join(' · ');
+        const stageName=stage(r);
+        const when=r.scheduled_at?localTime(r.scheduled_at):'';
         return `<article class="queue-card ${r.status==='posted'?'posted':r.status==='archived'?'archived':''}" data-post-id="${esc(r.id)}">
           <span class="tag">r/${esc(r.subreddit)}</span>${tags}<span class="tag">${esc(r.status)}</span><span class="tag">signal ${esc(r.score)}</span>
           <p class="updated mono">Found ${esc(sourceDate)} · <a href="${esc(r.sourceUrl)}" target="_blank" rel="noopener">Open source discussion ↗</a></p>
           <b>${esc(r.sourceTitle)}</b><p class="screening"><strong>Why it qualified (${esc(r.contextScore)}/100):</strong> ${esc(reasons)}</p><p>${esc(r.angle)}</p><p><strong>Link guidance:</strong> ${esc(r.cta)}</p>
-          ${hasDraft?`<div class="draft-field"><label>Copy-ready title</label><textarea class="draft-title comment">${esc(r.draft_title)}</textarea></div>
-          <div class="draft-field"><label>Copy-ready post</label><textarea class="draft-body">${esc(String(r.draft_body).replaceAll('{{tracked_link}}',trackedLink(r)))}</textarea></div>
-          <div class="draft-field"><label>First comment</label><textarea class="draft-comment comment">${esc(String(r.first_comment||'').replaceAll('{{tracked_link}}',trackedLink(r)))}</textarea></div>`:'<p class="explain">No generated draft yet. Generate one from this live topic signal, then review it before posting.</p>'}
-          <div class="button-row"><button class="generate" data-id="${esc(r.id)}">${hasDraft?'Regenerate draft':'Generate draft'}</button>${hasDraft?`<button class="secondary copy-title">Copy title</button><button class="secondary copy-body">Copy body</button><button class="secondary copy-full">Copy all</button>`:''}<button class="secondary copy-track" data-id="${esc(r.id)}">Copy tracked link</button>${r.status!=='archived'?`<button class="secondary archive-post" data-id="${esc(r.id)}">Archive</button>`:''}</div>
-          <div class="post-controls"><select class="post-status"><option value="planned">Planned</option><option value="draft">Draft</option><option value="ready">Ready</option><option value="posted">Posted</option><option value="skipped">Skipped</option><option value="blocked">Blocked</option><option value="archived">Archived</option></select><input class="reddit-url" type="url" placeholder="Published Reddit URL (when posted)" value="${esc(r.reddit_url||'')}"/><button class="secondary save-post" data-id="${esc(r.id)}">Save</button></div>
-        </article>`;
-      }).join('');
-      posts.forEach((post)=>{
-        const card=document.querySelector(`[data-post-id="${CSS.escape(post.id)}"]`);
-        card.querySelector('.post-status').value=post.status||'planned';
-      });
-      document.querySelectorAll('.generate').forEach((button)=>button.addEventListener('click',async()=>{
-        button.disabled=true; button.textContent='Drafting…';
-        try{await api('/api/admin/growth',{method:'POST',body:JSON.stringify({action:'draft',post_id:button.dataset.id})});await load();}catch(e){alert(e.message);button.disabled=false;button.textContent='Generate draft';}
-      }));
-      document.querySelectorAll('.copy-title').forEach((button)=>button.addEventListener('click',async()=>{await navigator.clipboard.writeText(button.closest('.queue-card').querySelector('.draft-title').value);button.textContent='Copied';}));
-      document.querySelectorAll('.copy-body').forEach((button)=>button.addEventListener('click',async()=>{await navigator.clipboard.writeText(button.closest('.queue-card').querySelector('.draft-body').value);button.textContent='Copied';}));
-      document.querySelectorAll('.copy-full').forEach((button)=>button.addEventListener('click',async()=>{const card=button.closest('.queue-card');const title=card.querySelector('.draft-title').value,body=card.querySelector('.draft-body').value,comment=card.querySelector('.draft-comment').value;await navigator.clipboard.writeText(`${title}\n\n${body}${comment?`\n\nFirst comment:\n${comment}`:''}`);button.textContent='Copied';}));
-      document.querySelectorAll('.copy-track').forEach((button)=>button.addEventListener('click',async()=>{
-        const post=dashboardData.reddit_queue.find((item)=>item.id===button.dataset.id);await navigator.clipboard.writeText(trackedLink(post));button.textContent='Copied';
-      }));
-      document.querySelectorAll('.save-post').forEach((button)=>button.addEventListener('click',async()=>{
-        const card=button.closest('.queue-card');button.disabled=true;
-        try{await api('/api/admin/growth',{method:'PATCH',body:JSON.stringify({action:'status',post_id:button.dataset.id,status:card.querySelector('.post-status').value,reddit_url:card.querySelector('.reddit-url').value.trim()})});await load();}catch(e){alert(e.message);button.disabled=false;}
-      }));
-      document.querySelectorAll('.archive-post').forEach((button)=>button.addEventListener('click',async()=>{
-        button.disabled=true;
-        try{await api('/api/admin/growth',{method:'PATCH',body:JSON.stringify({action:'status',post_id:button.dataset.id,status:'archived'})});await load();}catch(e){alert(e.message);button.disabled=false;}
-      }));
+          ${hasDraft?`<div class="draft-field"><label>Draft title</label><textarea class="draft-title comment">${esc(r.draft_title)}</textarea></div>
+          <div class="draft-field"><label>Draft post</label><textarea class="draft-body">${esc(String(r.draft_body).replaceAll('{{tracked_link}}',trackedLink(r)))}</textarea></div>
+          <div class="draft-field"><label>First comment</label><textarea class="draft-comment comment">${esc(String(r.first_comment||'').replaceAll('{{tracked_link}}',trackedLink(r)))}</textarea></div>`:'<p class="explain">Generate a draft from this live discussion, then review it before approving.</p>'}
+          ${stageName==='approved'||(stageName==='scheduled'&&r.status!=='posted')?`<div class="draft-field"><label>Manual posting time (your local timezone)</label><input class="reddit-time" type="datetime-local" value="${esc(when)}" /></div>`:''}
+          ${stageName==='scheduled'?`<div class="draft-field"><label>Published Reddit URL (when posted)</label><input class="reddit-url" type="url" placeholder="https://www.reddit.com/r/…" value="${esc(r.reddit_url||'')}" /></div>`:''}
+          ${r.status==='posted'?`<p class="updated">Posted ${r.posted_at?esc(new Date(r.posted_at).toLocaleString()):''}${r.reddit_url?` · <a href="${esc(r.reddit_url)}" target="_blank" rel="noopener">View Reddit post ↗</a>`:''}</p>`:
+            r.status==='scheduled'?`<p class="updated">Manual posting planned for ${esc(new Date(r.scheduled_at).toLocaleString())}. This app does not publish to Reddit.</p>`:''}
+          <div class="button-row">
+            ${stageName==='review'?`<button class="generate" data-id="${esc(r.id)}">${hasDraft?'Regenerate draft':'Generate draft'}</button>`:''}
+            ${hasDraft&&r.status!=='posted'&&r.status!=='archived'?`<button class="secondary save-copy">Save edits</button>`:''}
+            ${hasDraft?`<button class="secondary copy-full">Copy post</button><button class="secondary copy-track" data-id="${esc(r.id)}">Copy tracked link</button>`:''}
+            ${stageName==='review'&&r.status!=='archived'?`<button class="approve-reddit" ${hasDraft?'':'disabled title="Generate a draft first"'}>Approve</button>`:''}
+            ${stageName==='approved'?`<button class="schedule-reddit">Schedule</button><button class="secondary return-reddit">Return to review</button>`:''}
+            ${r.status==='scheduled'?`<button class="posted-reddit">Mark posted</button><button class="secondary return-reddit">Return to review</button>`:''}
+            ${r.status==='archived'?`<button class="secondary restore-reddit">Restore</button>`:r.status==='posted'?'':`<button class="secondary archive-post">Archive</button>`}
+          </div></article>`;
+      }).join('')||'<p class="updated">No Reddit posts in this stage. Run a scan or choose another stage.</p>';
     }
+    async function updateReddit(card,status) {
+      const post=dashboardData.reddit_queue.find(item=>item.id===card.dataset.postId);
+      const time=card.querySelector('.reddit-time')?.value;
+      const url=card.querySelector('.reddit-url')?.value.trim()||'';
+      const payload={action:'status',post_id:post.id,status,reddit_url:url};
+      if(card.querySelector('.draft-title')) {
+        payload.draft_title=card.querySelector('.draft-title').value;
+        payload.draft_body=card.querySelector('.draft-body').value;
+        payload.first_comment=card.querySelector('.draft-comment').value;
+      }
+      if(status==='scheduled')payload.scheduled_at=time?new Date(time).toISOString():'';
+      await api('/api/admin/growth',{method:'PATCH',body:JSON.stringify(payload)});
+      await load();
+    }
+    $('redditFunnel').addEventListener('click',event=>{const tile=event.target.closest('[data-reddit-stage]');if(!tile)return;redditStage=tile.dataset.redditStage;renderQueue(dashboardData);});
+    $('queue').addEventListener('click',async event=>{
+      const button=event.target.closest('button'),card=button?.closest('.queue-card');if(!card)return;
+      const post=dashboardData.reddit_queue.find(item=>item.id===card.dataset.postId);
+      if(button.classList.contains('copy-full')) {
+        const title=card.querySelector('.draft-title').value,body=card.querySelector('.draft-body').value,comment=card.querySelector('.draft-comment').value;
+        try{await navigator.clipboard.writeText(`${title}\n\n${body}${comment?`\n\nFirst comment:\n${comment}`:''}`);button.textContent='Copied';}catch(e){alert(e.message);}return;
+      }
+      if(button.classList.contains('copy-track')){try{await navigator.clipboard.writeText(trackedLink(post));button.textContent='Copied';}catch(e){alert(e.message);}return;}
+      if(button.classList.contains('generate')){button.disabled=true;button.textContent='Drafting…';try{await api('/api/admin/growth',{method:'POST',body:JSON.stringify({action:'draft',post_id:post.id})});await load();}catch(e){alert(e.message);button.disabled=false;button.textContent='Generate draft';}return;}
+      const status=button.classList.contains('approve-reddit')?'approved':
+        button.classList.contains('schedule-reddit')?'scheduled':
+        button.classList.contains('posted-reddit')?'posted':
+        button.classList.contains('return-reddit')?'draft':
+        button.classList.contains('archive-post')?'archived':
+        button.classList.contains('restore-reddit')?'draft':
+        button.classList.contains('save-copy')?(['approved','ready'].includes(post.status)?'approved':post.status):null;
+      if(!status)return;
+      button.disabled=true;
+      try{await updateReddit(card,status);}catch(e){alert(e.message);button.disabled=false;}
+    });
     async function load() {
       const response = await api(`/api/admin/growth${$('showArchived').checked?'?include_archived=true':''}`); const data = await response.json(); dashboardData=data;
       $('gate').hidden = true; $('dashboard').hidden = false; $('updated').textContent = `Updated ${new Date(data.generated_at).toLocaleString()}`;
@@ -246,7 +271,7 @@
       const stages = [['Visits',f.views],['Form starts',f.starts],['Founder signups',f.signups],['Referral link copies',f.link_copies],['Qualified referrals',f.referrals]];
       $('funnel').innerHTML = stages.map(([label,value])=>`<tr><td>${label}</td><td>${value}</td><td>${f.views ? ((value/f.views)*100).toFixed(1) : '0.0'}%</td></tr>`).join('');
       const max = Math.max(1,...data.daily.map((d)=>d.views)); $('daily').innerHTML = data.daily.map((d)=>`<div class="bar" style="height:${Math.max(2,(d.views/max)*100)}%" data-label="${esc(d.day)}: ${d.views} visits / ${d.signups} leads"></div>`).join('');
-      const n=data.next_post; $('nextPost').innerHTML=n?`<b class="mono">r/${esc(n.subreddit)} · ${esc(n.phase)}</b><p><strong>${esc(n.sourceTitle)}</strong></p><p>${esc(n.angle)}</p><p class="updated mono">Why now: ${esc(n.reason)}</p><p><a href="${esc(n.sourceUrl)}" target="_blank" rel="noopener">Open live signal ↗</a></p>`:'<p>No uncompleted Reddit opportunities. Run a scan or review skipped items.</p>';
+
       $('campaigns').innerHTML=data.campaigns.map((r)=>`<tr><td>${esc(originLabel(r))}</td><td>${esc(r.content||r.campaign||'—')}</td><td>${r.views}</td><td>${r.starts}</td><td>${r.signups}</td><td>${r.conversion_rate}%</td><td>${r.referrals}</td></tr>`).join('')||'<tr><td colspan="7">No measured campaigns yet.</td></tr>';
       $('leaders').innerHTML=data.referral_leaders.map((r)=>`<tr><td>${esc(r.founder_id)}</td><td>${esc(r.email)}</td><td>${esc(r.origin||'Original site / direct')}</td><td>${r.referral_count}</td></tr>`).join('')||'<tr><td colspan="4">No qualified referrals yet.</td></tr>';
       $('recent').innerHTML=data.recent_founders.map((r)=>`<tr><td>${esc(r.founder_id)}</td><td>${esc(r.email)}</td><td>${esc(r.origin||'Original site / direct')}</td><td>${esc(r.content||'—')}</td><td>${r.referral_count}</td><td>${new Date(r.created_at).toLocaleDateString()}</td></tr>`).join('');
