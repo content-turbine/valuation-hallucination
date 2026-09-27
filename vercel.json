@@ -4,6 +4,10 @@
   "trailingSlash": false,
   "crons": [
     {
+      "path": "/api/cron/social-drafts",
+      "schedule": "0 14 * * *"
+    },
+    {
       "path": "/api/cron/reddit-digest",
       "schedule": "0 14 * * *"
     },
