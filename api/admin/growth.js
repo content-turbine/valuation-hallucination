@@ -4,6 +4,8 @@ import { generateRedditDraft } from "../../lib/reddit-drafts.js";
 import { loadRedditQueue, opportunityRowToPost, syncRedditOpportunities } from "../../lib/reddit-scan.js";
 import socialHandler from "../../lib/social-admin.js";
 import socialIntake from "../../lib/social-intake.js";
+import socialBrief from "../../lib/social-brief.js";
+import socialAsset from "../../lib/social-asset.js";
 
 const allowedStatuses = new Set(["planned", "draft", "ready", "posted", "skipped", "blocked", "archived"]);
 
@@ -94,6 +96,8 @@ async function statusAction(db, body, res) {
 }
 
 export default async function handler(req, res) {
+  if (req.query?.view === "brief") return socialBrief(req, res);
+  if (req.query?.view === "asset") return socialAsset(req, res);
   if (req.query?.view === "submit") return socialIntake(req, res);
   if (req.query?.view === "social") return socialHandler(req, res);
   res.setHeader("Cache-Control", "no-store");
