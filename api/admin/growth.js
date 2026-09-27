@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import redditFeed from "../../lib/reddit-feed.js";
 import { authorized, growthDatabase, safeUrl } from "../../lib/growth.js";
 import { nextPostRecommendation, normalizedPostStatus, redditSubreddits } from "../../lib/reddit-content.js";
 import { generateRedditDraft } from "../../lib/reddit-drafts.js";
@@ -113,6 +114,7 @@ async function statusAction(db, body, res) {
 }
 
 export default async function handler(req, res) {
+  if (req.query?.view === "reddit_feed") return redditFeed(req, res);
   if (req.query?.view === "brief") return socialBrief(req, res);
   if (req.query?.view === "asset") return socialAsset(req, res);
   if (req.query?.view === "submit") return socialIntake(req, res);
