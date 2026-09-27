@@ -33,3 +33,31 @@ test('tracking redirect rejects malformed post ID', async () => {
   await clickHandler({method:'GET',query:{social:'bad'}},res);
   assert.deepEqual(calls,[400]);
 });
+
+test('Instagram standalone account accepts the image and schedules once', async () => {
+  const oldFetch=globalThis.fetch, oldKey=process.env.VOHOLABS_API_KEY;
+  const requests=[];
+  process.env.VOHOLABS_API_KEY='test';
+  globalThis.fetch=async(url,options)=>{
+    if(String(url).endsWith('/integrations')) return {ok:true,json:async()=>[{id:'ig-standalone',identifier:'instagram-standalone',disabled:false}]};
+    requests.push(JSON.parse(options.body));
+    return {ok:true,json:async()=>[{postId:'ig-post'}]};
+  };
+  try {
+    assert.equal(await scheduleVoholabsPost({id:5,channel:'instagram',caption:'Approved caption',scheduled_at:'2026-09-29T16:00:00Z'},{id:'asset',path:'https://media.example/image.png'}),'ig-post');
+    assert.equal(requests.length,1);
+    assert.equal(requests[0].posts[0].integration.id,'ig-standalone');
+    assert.equal(requests[0].posts[0].value[0].image[0].id,'asset');
+  } finally { globalThis.fetch=oldFetch;if(oldKey===undefined)delete process.env.VOHOLABS_API_KEY;else process.env.VOHOLABS_API_KEY=oldKey; }
+});
+
+test('multiple Instagram accounts require an explicit choice, not a guessed destination', async()=>{
+  const oldFetch=globalThis.fetch,oldKey=process.env.VOHOLABS_API_KEY;let posts=0;
+  process.env.VOHOLABS_API_KEY='test';
+  globalThis.fetch=async(url)=>{
+    if(String(url).endsWith('/integrations'))return {ok:true,json:async()=>[{id:'one',identifier:'instagram',disabled:false},{id:'two',identifier:'instagram-standalone',disabled:false}]};
+    posts++;throw new Error('Must not post');
+  };
+  try {await assert.rejects(scheduleVoholabsPost({channel:'instagram'}),/found 2/);assert.equal(posts,0);}
+  finally {globalThis.fetch=oldFetch;if(oldKey===undefined)delete process.env.VOHOLABS_API_KEY;else process.env.VOHOLABS_API_KEY=oldKey;}
+});
