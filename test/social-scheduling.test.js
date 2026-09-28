@@ -61,3 +61,14 @@ test('multiple Instagram accounts require an explicit choice, not a guessed dest
   try {await assert.rejects(scheduleVoholabsPost({channel:'instagram'}),/found 2/);assert.equal(posts,0);}
   finally {globalThis.fetch=oldFetch;if(oldKey===undefined)delete process.env.VOHOLABS_API_KEY;else process.env.VOHOLABS_API_KEY=oldKey;}
 });
+
+test('caption validation rejects before sending and replaces the complete destination URL', async()=>{
+  const {prepareVoholabsCaption}=await import('../lib/voholabs.js');
+  assert.throws(()=>prepareVoholabsCaption({id:12,channel:'x',caption:'x'.repeat(281)}),/280 characters/);
+  const caption=prepareVoholabsCaption({id:12,channel:'x',caption:'Vote: https://www.valuationhallucination.com/choose'});
+  assert.equal(caption,'Vote: https://www.valuationhallucination.com/api/events?social=12');
+  const {readFileSync}=await import('node:fs');
+  const handler=readFileSync(new URL('../lib/social-admin.js',import.meta.url),'utf8');
+  assert.ok(handler.indexOf('try { prepareVoholabsCaption(post); }') < handler.indexOf('// Claim the post'));
+  assert.match(handler,/external_post_id=\('uncertain:' \|\| id::text\)/);
+});
