@@ -64,6 +64,7 @@
   <script>
     let adminToken = sessionStorage.getItem('vh_growth_token') || '';
     let dashboardData = null;
+    const redditDrafting = new Set(), redditDraftErrors = new Map();
     let socialData = null;
     let socialFilter = 'review';
     let redditStage = 'review';
@@ -213,8 +214,10 @@
           ${stageName==='scheduled'?`<div class="draft-field"><label>Published Reddit URL (when posted)</label><input class="reddit-url" type="url" placeholder="https://www.reddit.com/r/…" value="${esc(r.reddit_url||'')}" /></div>`:''}
           ${r.status==='posted'?`<p class="updated">Posted ${r.posted_at?esc(new Date(r.posted_at).toLocaleString()):''}${r.reddit_url?` · <a href="${esc(r.reddit_url)}" target="_blank" rel="noopener">View Reddit post ↗</a>`:''}</p>`:
             r.status==='scheduled'?`<p class="updated">Posting planned for ${esc(new Date(r.scheduled_at).toLocaleString())}. Publish it on Reddit yourself, then add the Reddit URL above.</p>`:''}
+          ${redditDrafting.has(r.id)?'<p role="status">Reading the source and writing your draft. This can take up to three minutes.</p>':''}
+          ${redditDraftErrors.has(r.id)?`<p role="alert">${esc(redditDraftErrors.get(r.id))}</p>`:''}
           <div class="button-row">
-            ${stageName==='review'?`<button class="generate" data-id="${esc(r.id)}">${hasDraft?'Regenerate draft':'Generate draft'}</button>`:''}
+            ${stageName==='review'?`<button class="generate" data-id="${esc(r.id)}" ${redditDrafting.has(r.id)?'disabled':''}>${redditDrafting.has(r.id)?'Drafting…':hasDraft?'Regenerate draft':'Generate draft'}</button>`:''}
             ${hasDraft&&r.status!=='posted'&&r.status!=='archived'?`<button class="secondary save-copy">Save edits</button>`:''}
             ${hasDraft?`<button class="secondary copy-full">Copy post</button><button class="secondary copy-track" data-id="${esc(r.id)}">Copy tracked link</button>`:''}
             ${stageName==='review'&&r.status!=='archived'?`<button class="approve-reddit" ${hasDraft?'':'disabled title="Generate a draft first"'}>Approve</button>`:''}
@@ -247,7 +250,17 @@
         try{await navigator.clipboard.writeText(`${title}\n\n${body}${comment?`\n\nFirst comment:\n${comment}`:''}`);button.textContent='Copied';}catch(e){alert(e.message);}return;
       }
       if(button.classList.contains('copy-track')){try{await navigator.clipboard.writeText(trackedLink(post));button.textContent='Copied';}catch(e){alert(e.message);}return;}
-      if(button.classList.contains('generate')){button.disabled=true;button.textContent='Drafting…';try{await api('/api/admin/growth',{method:'POST',body:JSON.stringify({action:'draft',post_id:post.id})});await load();}catch(e){alert(e.message);button.disabled=false;button.textContent='Generate draft';}return;}
+      if(button.classList.contains('generate')){
+        if(redditDrafting.has(post.id))return;
+        redditDrafting.add(post.id);redditDraftErrors.delete(post.id);renderQueue(dashboardData);
+        try{
+          const response=await api('/api/admin/growth',{method:'POST',signal:AbortSignal.timeout(210000),body:JSON.stringify({action:'draft',post_id:post.id})});
+          const draft=await response.json();
+          Object.assign(post,{status:'draft',draft_title:draft.title,draft_body:draft.body,first_comment:draft.first_comment,llm_model:draft.model});
+        }catch(e){redditDraftErrors.set(post.id,e.name==='TimeoutError'||e.name==='AbortError'?'Drafting timed out. Refresh to check whether it saved, then retry if needed.':e.message);}
+        finally{redditDrafting.delete(post.id);renderQueue(dashboardData);}
+        return;
+      }
       const status=button.classList.contains('approve-reddit')?'approved':
         button.classList.contains('schedule-reddit')?'scheduled':
         button.classList.contains('posted-reddit')?'posted':

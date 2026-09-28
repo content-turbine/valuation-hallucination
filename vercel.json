@@ -35,5 +35,10 @@
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/admin/growth.js": {
+      "maxDuration": 240
+    }
+  }
 }
