@@ -135,7 +135,13 @@ export default async function handler(req, res) {
         return res.status(400).json({ detail: "Invalid request." });
       }
       if (req.method === "POST" && body.action === "scan") return await scanAction(db, res);
-      if (req.method === "POST" && body.action === "draft") return await draftAction(db, body, res);
+      if (req.method === "POST" && body.action === "draft") {
+        try { return await draftAction(db, body, res); }
+        catch (error) {
+          console.error("reddit_draft_error", error.message);
+          return res.status(502).json({ detail: error.message || "Draft generation failed. Please retry." });
+        }
+      }
       if (req.method === "PATCH" && body.action === "status") return await statusAction(db, body, res);
       return res.status(400).json({ detail: "Unknown growth action." });
     }

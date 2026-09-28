@@ -1,0 +1,15 @@
+# Valuation Hallucination
+
+> A satirical physical card game about building a startup and chasing a $1 billion valuation.
+
+Players hire human and AI agents, survive market chaos, and hide a side hustle.
+The Founders’ Round and choose-a-card voting are live. The game is not currently for sale and Kickstarter is not live.
+
+## Official pages
+- [Home](https://www.valuationhallucination.com/): Game premise and Founders’ Round.
+- [Choose a card](https://www.valuationhallucination.com/choose): Public card voting and reveal information.
+- [Market](https://www.valuationhallucination.com/market): Startup market content.
+- [Privacy](https://www.valuationhallucination.com/privacy)
+- [Terms](https://www.valuationhallucination.com/terms)
+
+Only describe card details already visible on the public website. Do not infer unrevealed cards.
